@@ -1,5 +1,6 @@
 import 'package:client_app/core/theme/app_colors.dart';
 import 'package:client_app/core/theme/app_spacing.dart';
+import 'package:client_app/core/theme/app_text_styles.dart';
 import 'package:client_app/core/theme/app_typography.dart';
 import 'package:client_app/features/goods_details/viewmodel/goods_details_viewmodel.dart';
 import 'package:client_app/features/select_vehicle/view/model/vehicle_model.dart';
@@ -7,16 +8,22 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 class GoodsDetailsScreen extends StatelessWidget {
-   final VehicleModel selectedVehicle;
+  final VehicleModel selectedVehicle;
+
   const GoodsDetailsScreen({
-    super.key,required this.selectedVehicle,
+    super.key,
+    required this.selectedVehicle,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => GoodsDetailsViewModel( selectedVehicle: selectedVehicle,),
-      child:  _GoodsDetailsView(selectedVehicle: selectedVehicle,),
+      create: (_) => GoodsDetailsViewModel(
+        selectedVehicle: selectedVehicle,
+      ),
+      child: _GoodsDetailsView(
+        selectedVehicle: selectedVehicle,
+      ),
     );
   }
 }
@@ -27,9 +34,10 @@ class GoodsDetailsScreen extends StatelessWidget {
 
 class _GoodsDetailsView extends StatelessWidget {
   final VehicleModel selectedVehicle;
-  const _GoodsDetailsView({required this.selectedVehicle,});
 
- 
+  const _GoodsDetailsView({
+    required this.selectedVehicle,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -39,41 +47,88 @@ class _GoodsDetailsView extends StatelessWidget {
       body: SafeArea(
         child: Stack(
           children: [
+            // =========================================================
+            // SCROLLABLE CONTENT
+            // =========================================================
+
             SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
+                AppSpacing.screenHorizontal,
                 AppSpacing.sm,
-                AppSpacing.lg,
-                130,
+                AppSpacing.screenHorizontal,
+                110,
               ),
               child: Column(
                 crossAxisAlignment:
                     CrossAxisAlignment.start,
                 children: [
+                  // =================================================
+                  // HEADER
+                  // =================================================
+
                   _buildHeader(context),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(
+                    height: AppSpacing.xl,
+                  ),
+
+                  // =================================================
+                  // QUESTION
+                  // =================================================
 
                   _buildQuestion(),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(
+                    height: AppSpacing.lg,
+                  ),
+
+                  // =================================================
+                  // CATEGORY GRID
+                  // =================================================
 
                   _buildCategoryGrid(context),
 
-                  const SizedBox(height: 25),
+                  const SizedBox(
+                    height: AppSpacing.xxl,
+                  ),
+
+                  // =================================================
+                  // DETAILS CARD
+                  // =================================================
 
                   _buildDetailsCard(context),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(
+                    height: AppSpacing.xxl,
+                  ),
+
+                  // =================================================
+                  // PHOTOS
+                  // =================================================
 
                   _buildPhotosSection(context),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(
+                    height: AppSpacing.xxl,
+                  ),
+
+                  // =================================================
+                  // RESTRICTED ITEMS
+                  // =================================================
 
                   _buildRestrictedItemsWarning(),
+
+                  const SizedBox(
+                    height: AppSpacing.xxl,
+                  ),
                 ],
               ),
             ),
+
+            // =========================================================
+            // FIXED BOTTOM BUTTON
+            // =========================================================
 
             _buildBottomButton(context),
           ],
@@ -86,33 +141,40 @@ class _GoodsDetailsView extends StatelessWidget {
   // HEADER
   // =========================================================
 
-  Widget _buildHeader(BuildContext context) {
+  Widget _buildHeader(
+    BuildContext context,
+  ) {
     return SizedBox(
-      height: 45,
+      height: 48,
       child: Stack(
         alignment: Alignment.center,
         children: [
+          // BACK BUTTON
+
           Align(
             alignment: Alignment.centerLeft,
             child: IconButton(
               padding: EdgeInsets.zero,
+              constraints:
+                  const BoxConstraints(),
               onPressed: () {
                 Navigator.of(context).maybePop();
               },
               icon: const Icon(
-                Icons.arrow_back,
-                size: 30,
-                color: AppColors.textSecondary,
+                Icons.arrow_back_rounded,
+                size: AppSpacing.iconMedium,
+                color: AppColors.textPrimary,
               ),
             ),
           ),
 
+          // TITLE
+
           Text(
             'Goods Details',
-            style: TextStyle(
-              fontSize: AppTypography.xxlScaled + 2,
-              fontWeight: AppTypography.bold,
-              color: AppColors.primaryDark,
+            style:
+                AppTextStyles.screenTitle.copyWith(
+              color: AppColors.textPrimary,
             ),
           ),
         ],
@@ -127,8 +189,7 @@ class _GoodsDetailsView extends StatelessWidget {
   Widget _buildQuestion() {
     return Text(
       'What are you sending?',
-      style: TextStyle(
-        fontSize: AppTypography.xxlScaled,
+      style: AppTextStyles.heading1.copyWith(
         fontWeight: AppTypography.bold,
         color: AppColors.textPrimary,
       ),
@@ -139,36 +200,56 @@ class _GoodsDetailsView extends StatelessWidget {
   // CATEGORY GRID
   // =========================================================
 
-  Widget _buildCategoryGrid(BuildContext context) {
+  Widget _buildCategoryGrid(
+    BuildContext context,
+  ) {
     final viewModel =
         context.watch<GoodsDetailsViewModel>();
 
     return GridView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics:
+          const NeverScrollableScrollPhysics(),
 
-      itemCount: viewModel.categories.length,
+      itemCount:
+          viewModel.categories.length,
 
       gridDelegate:
           const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 3,
 
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
+        crossAxisSpacing:
+            AppSpacing.sm,
 
-        childAspectRatio: 0.92,
+        mainAxisSpacing:
+            AppSpacing.sm,
+
+        // Compact category cards
+        mainAxisExtent: 92,
       ),
 
-      itemBuilder: (context, index) {
+      itemBuilder: (
+        context,
+        index,
+      ) {
         final isSelected =
-            viewModel.selectedCategoryIndex == index;
+            viewModel.selectedCategoryIndex ==
+                index;
 
         return _CategoryCard(
-          title: viewModel.categories[index],
-          icon: viewModel.categoryIcons[index],
-          isSelected: isSelected,
+          title:
+              viewModel.categories[index],
+
+          icon:
+              viewModel.categoryIcons[index],
+
+          isSelected:
+              isSelected,
+
           onTap: () {
-            viewModel.selectCategory(index);
+            viewModel.selectCategory(
+              index,
+            );
           },
         );
       },
@@ -179,64 +260,77 @@ class _GoodsDetailsView extends StatelessWidget {
   // DETAILS CARD
   // =========================================================
 
-  Widget _buildDetailsCard(BuildContext context) {
+  Widget _buildDetailsCard(
+    BuildContext context,
+  ) {
     final viewModel =
         context.read<GoodsDetailsViewModel>();
 
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(
+        AppSpacing.lg,
+      ),
 
       decoration: BoxDecoration(
         color: AppColors.surface,
 
-        borderRadius: BorderRadius.circular(
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusLarge,
         ),
 
         border: Border.all(
           color: AppColors.border,
-          width: 1.2,
         ),
-
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(
-              AppColors.opacityShadow,
-            ),
-            blurRadius: 5,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
 
       child: Column(
         children: [
+          // WEIGHT
+
           _DetailsInput(
-            label: 'Approximate weight',
-            hint: 'e.g. 50 kg',
-            controller: viewModel.weightController,
+            label:
+                'Approximate weight',
+            hint:
+                'e.g. 50 kg',
+            controller:
+                viewModel.weightController,
             keyboardType:
                 TextInputType.number,
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(
+            height: AppSpacing.md,
+          ),
+
+          // PACKAGES
 
           _DetailsInput(
-            label: 'Number of packages',
-            hint: 'e.g. 3',
-            controller: viewModel.packageController,
+            label:
+                'Number of packages',
+            hint:
+                'e.g. 3',
+            controller:
+                viewModel.packageController,
             keyboardType:
                 TextInputType.number,
           ),
 
-          const SizedBox(height: 28),
+          const SizedBox(
+            height: AppSpacing.md,
+          ),
+
+          // VALUE
 
           _DetailsInput(
-            label: 'Approximate goods value',
-            hint: '0',
-            controller: viewModel.valueController,
+            label:
+                'Approximate goods value',
+            hint:
+                '0',
+            controller:
+                viewModel.valueController,
             keyboardType:
                 TextInputType.number,
             prefixText: '₹',
@@ -247,35 +341,36 @@ class _GoodsDetailsView extends StatelessWidget {
   }
 
   // =========================================================
-  // PHOTOS
+  // PHOTOS SECTION
   // =========================================================
 
-  Widget _buildPhotosSection(BuildContext context) {
+  Widget _buildPhotosSection(
+    BuildContext context,
+  ) {
     return Column(
       crossAxisAlignment:
           CrossAxisAlignment.start,
       children: [
+        // TITLE
+
         RichText(
           text: TextSpan(
             children: [
               TextSpan(
                 text: 'Add photos',
-                style: TextStyle(
-                  fontSize:
-                      AppTypography.xlScaled,
+                style:
+                    AppTextStyles.heading3.copyWith(
                   fontWeight:
-                      AppTypography.bold,
+                      AppTypography.semiBold,
                   color:
                       AppColors.textPrimary,
                 ),
               ),
               TextSpan(
-                text: '  (Optional)',
-                style: TextStyle(
-                  fontSize:
-                      AppTypography.lgScaled,
-                  fontWeight:
-                      AppTypography.semiBold,
+                text:
+                    '  (Optional)',
+                style:
+                    AppTextStyles.bodyMedium.copyWith(
                   color:
                       AppColors.textSecondary,
                 ),
@@ -284,36 +379,51 @@ class _GoodsDetailsView extends StatelessWidget {
           ),
         ),
 
-        const SizedBox(height: 22),
+        const SizedBox(
+          height: AppSpacing.md,
+        ),
+
+        // PHOTO CARD
 
         GestureDetector(
           onTap: () {
-            _showPhotoMessage(context);
+            _showPhotoMessage(
+              context,
+            );
           },
+
           child: Container(
-            width: 120,
-            height: 120,
+            width: 96,
+            height: 96,
 
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color:
+                  AppColors.surface,
 
               borderRadius:
                   BorderRadius.circular(
                 AppSpacing.radiusMedium,
               ),
 
-              border: Border.all(
-                color: AppColors.primary
-                    .withOpacity(0.4),
-                width: 2,
+              border:
+                  Border.all(
+                color:
+                    AppColors.primary.withOpacity(
+                  AppColors
+                      .opacityLightStrong,
+                ),
               ),
             ),
 
-            child: const Center(
+            child:
+                const Center(
               child: Icon(
-                Icons.add_a_photo_outlined,
-                size: 48,
-                color: AppColors.primaryDark,
+                Icons
+                    .add_a_photo_outlined,
+                size:
+                    AppSpacing.iconLarge,
+                color:
+                    AppColors.primary,
               ),
             ),
           ),
@@ -322,14 +432,22 @@ class _GoodsDetailsView extends StatelessWidget {
     );
   }
 
-  void _showPhotoMessage(BuildContext context) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text(
-          'Photo selection will be added here.',
+  // =========================================================
+  // PHOTO MESSAGE
+  // =========================================================
+
+  void _showPhotoMessage(
+    BuildContext context,
+  ) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Photo selection will be added here.',
+          ),
         ),
-      ),
-    );
+      );
   }
 
   // =========================================================
@@ -340,37 +458,68 @@ class _GoodsDetailsView extends StatelessWidget {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 14,
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal:
+            AppSpacing.lg,
+        vertical:
+            AppSpacing.md,
       ),
 
       decoration: BoxDecoration(
-        color: AppColors.error.withOpacity(0.07),
-        borderRadius: BorderRadius.circular(
+        color:
+            AppColors.error.withOpacity(
+          AppColors.opacityExtraLight,
+        ),
+
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusMedium,
+        ),
+
+        border:
+            Border.all(
+          color:
+              AppColors.error.withOpacity(
+            AppColors.opacityLight,
+          ),
         ),
       ),
 
       child: Row(
         crossAxisAlignment:
-            CrossAxisAlignment.start,
+            CrossAxisAlignment.center,
+
         children: [
           Icon(
             Icons.warning_amber_rounded,
-            size: 24,
-            color: AppColors.error.withOpacity(0.55),
+
+            size:
+                AppSpacing.iconSmall,
+
+            color:
+                AppColors.error.withOpacity(
+              0.65,
+            ),
           ),
 
-          const SizedBox(width: 12),
+          const SizedBox(
+            width: AppSpacing.md,
+          ),
 
           Expanded(
             child: Text(
               'Do not send restricted items',
-              style: TextStyle(
-                fontSize: AppTypography.mdScaled,
-                fontWeight: AppTypography.semiBold,
-                color: AppColors.error.withOpacity(0.55),
+
+              style:
+                  AppTextStyles.bodyMedium.copyWith(
+                fontWeight:
+                    AppTypography.semiBold,
+
+                color:
+                    AppColors.error.withOpacity(
+                  0.70,
+                ),
               ),
             ),
           ),
@@ -383,80 +532,81 @@ class _GoodsDetailsView extends StatelessWidget {
   // BOTTOM BUTTON
   // =========================================================
 
-  Widget _buildBottomButton(BuildContext context) {
+  Widget _buildBottomButton(
+    BuildContext context,
+  ) {
     return Positioned(
       left: 0,
       right: 0,
       bottom: 0,
 
       child: Container(
-        padding: const EdgeInsets.fromLTRB(
+        padding:
+            const EdgeInsets.fromLTRB(
+          AppSpacing.screenHorizontal,
+          AppSpacing.md,
+          AppSpacing.screenHorizontal,
           AppSpacing.lg,
-          18,
-          AppSpacing.lg,
-          24,
         ),
 
-        decoration: BoxDecoration(
-          color: AppColors.surface,
+        decoration:
+            BoxDecoration(
+          color:
+              AppColors.background,
 
-          borderRadius:
-              const BorderRadius.only(
-            topLeft: Radius.circular(22),
-            topRight: Radius.circular(22),
+          border: const Border(
+            top:
+                BorderSide(
+              color:
+                  AppColors.border,
+            ),
           ),
 
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(
+              color:
+                  AppColors.black.withOpacity(
                 AppColors.opacityShadow,
               ),
-              blurRadius: 18,
-              offset: const Offset(0, -4),
+
+              blurRadius:
+                  AppSpacing.shadowBlur,
+
+              offset:
+                  const Offset(
+                0,
+                -4,
+              ),
             ),
           ],
         ),
 
-        child: SizedBox(
-          height: 64,
+        child: SafeArea(
+          top: false,
 
-          child: ElevatedButton(
-            onPressed: () {
-  context
-      .read<GoodsDetailsViewModel>()
-      .onContinuePressed(
-        context,
-        selectedVehicle,
-      );
-},
+          child: SizedBox(
+            width:
+                double.infinity,
 
-            style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  AppColors.primary,
+            height:
+                AppSpacing.buttonHeight,
 
-              foregroundColor:
-                  AppColors.white,
+            child:
+                ElevatedButton(
+              onPressed: () {
+                context
+                    .read<
+                        GoodsDetailsViewModel>()
+                    .onContinuePressed(
+                  context,
+                  selectedVehicle,
+                );
+              },
 
-              elevation: 0,
-
-              shape:
-                  RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(
-                  AppSpacing.radiusButton,
-                ),
-              ),
-            ),
-
-            child: Text(
-              'Continue',
-              style: TextStyle(
-                fontSize:
-                    AppTypography.xxlScaled,
-                fontWeight:
-                    AppTypography.bold,
-                color:
-                    AppColors.white,
+              child: Text(
+                'Continue',
+                style:
+                    AppTextStyles.buttonText,
               ),
             ),
           ),
@@ -470,7 +620,8 @@ class _GoodsDetailsView extends StatelessWidget {
 // CATEGORY CARD
 // =====================================================================
 
-class _CategoryCard extends StatelessWidget {
+class _CategoryCard
+    extends StatelessWidget {
   const _CategoryCard({
     required this.title,
     required this.icon,
@@ -485,81 +636,131 @@ class _CategoryCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
+    return Material(
+      color:
+          AppColors.transparent,
 
-      child: AnimatedContainer(
-        duration:
-            const Duration(milliseconds: 180),
+      borderRadius:
+          BorderRadius.circular(
+        AppSpacing.radiusMedium,
+      ),
 
-        decoration: BoxDecoration(
-          color: isSelected
-              ? AppColors.primary.withOpacity(0.30)
-              : AppColors.surface,
+      child: InkWell(
+        onTap: onTap,
 
-          borderRadius:
-              BorderRadius.circular(
-            AppSpacing.radiusMedium,
-          ),
-
-          border: Border.all(
-            color: isSelected
-                ? AppColors.primary
-                : AppColors.border,
-
-            width: isSelected ? 1.5 : 1.2,
-          ),
-
-          boxShadow: [
-            if (!isSelected)
-              BoxShadow(
-                color: AppColors.black.withOpacity(
-                  0.04,
-                ),
-                blurRadius: 3,
-                offset: const Offset(0, 1),
-              ),
-          ],
+        borderRadius:
+            BorderRadius.circular(
+          AppSpacing.radiusMedium,
         ),
 
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+        child:
+            AnimatedContainer(
+          duration:
+              const Duration(
+            milliseconds: 180,
+          ),
 
-          children: [
-            Icon(
-              icon,
-              size: 36,
-              color: isSelected
-                  ? AppColors.primary
-                  : AppColors.textSecondary,
+          padding:
+              const EdgeInsets.symmetric(
+            horizontal:
+                AppSpacing.xs,
+            vertical:
+                AppSpacing.sm,
+          ),
+
+          decoration:
+              BoxDecoration(
+            color: isSelected
+                ? AppColors.primary
+                    .withOpacity(
+                    AppColors
+                        .opacityExtraLight,
+                  )
+                : AppColors.surface,
+
+            borderRadius:
+                BorderRadius.circular(
+              AppSpacing
+                  .radiusMedium,
             ),
 
-            const SizedBox(height: 18),
+            border:
+                Border.all(
+              color:
+                  isSelected
+                      ? AppColors
+                          .primary
+                      : AppColors
+                          .border,
 
-            Padding(
-              padding:
-                  const EdgeInsets.symmetric(
-                horizontal: 4,
+              width:
+                  isSelected
+                      ? 1.5
+                      : AppSpacing
+                          .borderThin,
+            ),
+          ),
+
+          child:
+              Column(
+            mainAxisAlignment:
+                MainAxisAlignment.center,
+
+            children: [
+              Icon(
+                icon,
+
+                size:
+                    AppSpacing.iconMedium,
+
+                color:
+                    isSelected
+                        ? AppColors.primary
+                        : AppColors
+                            .textSecondary,
               ),
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow:
-                    TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize:
-                      AppTypography.lgScaled,
-                  fontWeight:
-                      AppTypography.semiBold,
-                  color: isSelected
-                      ? AppColors.primaryDark
-                      : AppColors.textPrimary,
+
+              const SizedBox(
+                height:
+                    AppSpacing.sm,
+              ),
+
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(
+                  horizontal:
+                      AppSpacing.xs,
+                ),
+
+                child: Text(
+                  title,
+
+                  textAlign:
+                      TextAlign.center,
+
+                  maxLines: 1,
+
+                  overflow:
+                      TextOverflow.ellipsis,
+
+                  style:
+                      AppTextStyles.labelLarge
+                          .copyWith(
+                    fontWeight:
+                        AppTypography
+                            .semiBold,
+
+                    color:
+                        isSelected
+                            ? AppColors
+                                .primary
+                            : AppColors
+                                .textPrimary,
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -570,7 +771,8 @@ class _CategoryCard extends StatelessWidget {
 // DETAILS INPUT
 // =====================================================================
 
-class _DetailsInput extends StatelessWidget {
+class _DetailsInput
+    extends StatelessWidget {
   const _DetailsInput({
     required this.label,
     required this.hint,
@@ -581,31 +783,42 @@ class _DetailsInput extends StatelessWidget {
 
   final String label;
   final String hint;
-  final TextEditingController controller;
-  final TextInputType keyboardType;
+
+  final TextEditingController
+      controller;
+
+  final TextInputType
+      keyboardType;
+
   final String? prefixText;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 110,
+      height: 76,
 
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 16,
+      padding:
+          const EdgeInsets.symmetric(
+        horizontal:
+            AppSpacing.md,
+        vertical:
+            AppSpacing.sm,
       ),
 
-      decoration: BoxDecoration(
-        color: AppColors.surface,
+      decoration:
+          BoxDecoration(
+        color:
+            AppColors.background,
 
         borderRadius:
             BorderRadius.circular(
           AppSpacing.radiusMedium,
         ),
 
-        border: Border.all(
-          color: AppColors.border,
-          width: 1.2,
+        border:
+            Border.all(
+          color:
+              AppColors.border,
         ),
       ),
 
@@ -613,75 +826,113 @@ class _DetailsInput extends StatelessWidget {
         crossAxisAlignment:
             CrossAxisAlignment.start,
 
+        mainAxisAlignment:
+            MainAxisAlignment.center,
+
         children: [
+          // ===========================================
+          // LABEL
+          // ===========================================
+
           Text(
             label,
-            style: TextStyle(
-              fontSize:
-                  AppTypography.lgScaled,
-              fontWeight:
-                  AppTypography.semiBold,
+
+            style:
+                AppTextStyles.labelMedium.copyWith(
               color:
                   AppColors.textSecondary,
+
+              fontWeight:
+                  AppTypography.medium,
             ),
           ),
 
-          const SizedBox(height: 8),
+          const SizedBox(
+            height:
+                AppSpacing.xs,
+          ),
+
+          // ===========================================
+          // INPUT
+          // ===========================================
 
           Expanded(
             child: Row(
+              crossAxisAlignment:
+                  CrossAxisAlignment.center,
+
               children: [
-                if (prefixText != null) ...[
+                if (prefixText !=
+                    null) ...[
                   Text(
                     prefixText!,
-                    style: TextStyle(
-                      fontSize:
-                          AppTypography.xxlScaled,
-                      fontWeight:
-                          AppTypography.regular,
+
+                    style:
+                        AppTextStyles.bodyLarge.copyWith(
                       color:
-                          AppColors.textSecondary,
+                          AppColors.textPrimary,
+
+                      fontWeight:
+                          AppTypography.medium,
                     ),
                   ),
 
-                  const SizedBox(width: 14),
+                  const SizedBox(
+                    width:
+                        AppSpacing.xs,
+                  ),
                 ],
 
                 Expanded(
-                  child: TextField(
-                    controller: controller,
+                  child:
+                      TextField(
+                    controller:
+                        controller,
 
                     keyboardType:
                         keyboardType,
 
-                    style: TextStyle(
-                      fontSize:
-                          AppTypography.xlScaled,
-                      fontWeight:
-                          AppTypography.regular,
+                    style:
+                        AppTextStyles.bodyLarge.copyWith(
                       color:
                           AppColors.textPrimary,
+
+                      fontWeight:
+                          AppTypography.medium,
                     ),
 
                     decoration:
                         InputDecoration(
-                      hintText: hint,
+                      hintText:
+                          hint,
 
                       hintStyle:
-                          TextStyle(
-                        fontSize:
-                            AppTypography.xlScaled,
+                          AppTextStyles.bodyLarge.copyWith(
                         color:
-                            AppColors.textPrimary,
+                            AppColors
+                                .textTertiary,
                       ),
 
                       border:
                           InputBorder.none,
 
+                      enabledBorder:
+                          InputBorder.none,
+
+                      focusedBorder:
+                          InputBorder.none,
+
+                      disabledBorder:
+                          InputBorder.none,
+
                       contentPadding:
                           EdgeInsets.zero,
 
-                      isDense: true,
+                      isCollapsed:
+                          true,
+
+                      filled:
+                          false,
                     ),
                   ),
                 ),

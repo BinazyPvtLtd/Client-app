@@ -1,186 +1,159 @@
-import 'package:client_app/core/theme/app_typography.dart';
-import 'package:flutter/material.dart';
 import 'package:client_app/core/theme/app_colors.dart';
 import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
+import 'package:client_app/core/theme/app_typography.dart';
+import 'package:client_app/features/booking/view/widgets/payment_method_sheet.dart';
+import 'package:client_app/features/booking/viewmodel/review_booking_viewmodel.dart';
 
-class ReviewBookingScreen extends StatefulWidget {
+
+import 'package:flutter/material.dart';
+
+class ReviewBookingScreen
+    extends StatefulWidget {
   const ReviewBookingScreen({
     super.key,
   });
 
   @override
-  State<ReviewBookingScreen> createState() =>
-      _ReviewBookingScreenState();
+  State<ReviewBookingScreen>
+      createState() =>
+          _ReviewBookingScreenState();
 }
 
-class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
-  // =========================================================
-  // BOOKING DATA
-  // =========================================================
+class _ReviewBookingScreenState
+    extends State<ReviewBookingScreen> {
+  late final ReviewBookingViewModel
+      _viewModel;
 
-  String paymentMethod = 'Cash';
+  @override
+  void initState() {
+    super.initState();
 
-  bool couponApplied = true;
-
-  final String couponCode = '2W15OFF';
-
-  // =========================================================
-  // GOODS DATA
-  // Replace these later with your existing ViewModel data.
-  // =========================================================
-
-  final String goodsCategory = 'Household';
-  final String goodsWeight = '20 kg';
-  final String goodsPackages = '3';
-  final String goodsValue = '₹2,500';
-
-  // =========================================================
-  // FARE DATA
-  // =========================================================
-
-  final double tripFare = 120;
-  final double distanceCharge = 45;
-  final double loadingUnloadingCharge = 0;
-  final double platformFee = 5;
-  final double taxes = 15;
-
-  double get discount => couponApplied ? 15 : 0;
-
-  double get totalAmount {
-    return tripFare +
-        distanceCharge +
-        loadingUnloadingCharge +
-        platformFee +
-        taxes -
-        discount;
+    _viewModel =
+        ReviewBookingViewModel();
   }
 
-  // =========================================================
-  // SCREEN
-  // =========================================================
+  @override
+  void dispose() {
+    _viewModel.dispose();
+
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-
-      // =======================================================
-      // APP BAR
-      // =======================================================
+      backgroundColor:
+          AppColors.background,
 
       appBar: AppBar(
-        backgroundColor: AppColors.background,
+        backgroundColor:
+            AppColors.background,
+
         elevation: 0,
+
         scrolledUnderElevation: 0,
+
+        toolbarHeight: 90,
 
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
+
           icon: const Icon(
             Icons.arrow_back_rounded,
-            size: AppSpacing.iconLarge,
+            size:
+                AppSpacing.iconLarge,
           ),
         ),
 
         title: Text(
           'Review Booking',
-          style: AppTextStyles.reviewTitle,
+          style:
+              AppTextStyles.reviewTitle,
         ),
-
-        toolbarHeight: 90,
       ),
 
-      // =======================================================
-      // BODY
-      // =======================================================
+      body: ListenableBuilder(
+        listenable: _viewModel,
 
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
+        builder: (
+          context,
+          _,
+        ) {
+          return Column(
+            children: [
+              Expanded(
+                child:
+                    SingleChildScrollView(
+                  physics:
+                      const BouncingScrollPhysics(),
 
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.sm,
-                AppSpacing.screenHorizontal,
-                AppSpacing.xxxl,
+                  padding:
+                      const EdgeInsets.fromLTRB(
+                    AppSpacing
+                        .screenHorizontal,
+                    AppSpacing.sm,
+                    AppSpacing
+                        .screenHorizontal,
+                    AppSpacing.xxxl,
+                  ),
+
+                  child: Column(
+                    crossAxisAlignment:
+                        CrossAxisAlignment
+                            .start,
+
+                    children: [
+                      _buildLoadingInfoCard(),
+
+                      const SizedBox(
+                        height:
+                            AppSpacing.md,
+                      ),
+
+                      _buildGstinCard(),
+
+                      const SizedBox(
+                        height:
+                            AppSpacing.md,
+                      ),
+
+                      if (_viewModel
+                          .couponApplied) ...[
+                        _buildCouponCard(),
+
+                        const SizedBox(
+                          height:
+                              AppSpacing.md,
+                        ),
+                      ],
+
+                      _buildGoodsDetailsCard(),
+
+                      const SizedBox(
+                        height:
+                            AppSpacing.md,
+                      ),
+
+                      _buildRestrictedItemsCard(),
+                    ],
+                  ),
+                ),
               ),
 
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // =================================================
-                  // LOADING / UNLOADING
-                  // =================================================
-
-                  _buildLoadingInfoCard(),
-
-                  const SizedBox(
-                    height: AppSpacing.xs,
-                  ),
-
-                  // =================================================
-                  // GSTIN
-                  // =================================================
-
-                  _buildGstinCard(),
-
-                  const SizedBox(
-                    height: AppSpacing.md,
-                  ),
-
-                  // =================================================
-                  // COUPON
-                  // =================================================
-
-                  if (couponApplied) ...[
-                    _buildCouponCard(),
-
-                    const SizedBox(
-                      height: AppSpacing.md,
-                    ),
-                  ],
-
-                  // =================================================
-                  // GOODS DETAILS
-                  // =================================================
-
-                  _buildGoodsDetailsCard(),
-
-                  const SizedBox(
-                    height: AppSpacing.md,
-                  ),
-
-                  // =================================================
-                  // RESTRICTED ITEMS
-                  // =================================================
-
-                  _buildRestrictedItemsCard(),
-
-                  const SizedBox(
-                    height: AppSpacing.md,
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // =======================================================
-          // FIXED BOTTOM BOOKING BAR
-          // =======================================================
-
-          _buildBottomBookingBar(),
-        ],
+              _buildBottomBookingBar(),
+            ],
+          );
+        },
       ),
     );
   }
 
-  // ============================================================
-  // LOADING INFO CARD
-  // ============================================================
+  // =========================================================
+  // LOADING INFO
+  // =========================================================
 
   Widget _buildLoadingInfoCard() {
     return Container(
@@ -194,18 +167,23 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
         color: AppColors.border.withOpacity(
           AppColors.opacityExtraLight,
         ),
-        borderRadius: BorderRadius.circular(
+
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusCard,
         ),
       ),
 
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
         children: [
           const Icon(
             Icons.info_outline_rounded,
             color: AppColors.primary,
-            size: AppSpacing.iconMedium,
+            size:
+                AppSpacing.iconMedium,
           ),
 
           const SizedBox(
@@ -215,7 +193,8 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           Expanded(
             child: Text(
               'Free 20 mins of loading-unloading time included.',
-              style: AppTextStyles.reviewBody,
+              style:
+                  AppTextStyles.reviewBody,
             ),
           ),
         ],
@@ -223,27 +202,30 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // GSTIN CARD
-  // ============================================================
+  // =========================================================
+  // GSTIN
+  // =========================================================
 
   Widget _buildGstinCard() {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.symmetric(
+      padding:
+          const EdgeInsets.symmetric(
         horizontal: AppSpacing.xxl,
         vertical: AppSpacing.xl,
       ),
 
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(
+
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusCard,
         ),
+
         border: Border.all(
           color: AppColors.border,
-          width: AppSpacing.borderThin,
         ),
       ),
 
@@ -251,8 +233,10 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
         children: [
           const Icon(
             Icons.receipt_long_outlined,
-            color: AppColors.textSecondary,
-            size: AppSpacing.iconLarge,
+            color:
+                AppColors.textSecondary,
+            size:
+                AppSpacing.iconLarge,
           ),
 
           const SizedBox(
@@ -260,38 +244,67 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           ),
 
           Expanded(
-            child: Text(
-              'Have a GST Number?',
-              style: AppTextStyles.reviewAction,
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+
+              children: [
+                Text(
+                  _viewModel.hasGstin
+                      ? 'GST Number'
+                      : 'Have a GST Number?',
+                  style: AppTextStyles
+                      .reviewAction,
+                ),
+
+                if (_viewModel.hasGstin)
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(
+                      top: AppSpacing.xs,
+                    ),
+
+                    child: Text(
+                      _viewModel.gstin!,
+                      style:
+                          AppTextStyles.bodyMedium,
+                    ),
+                  ),
+              ],
             ),
           ),
 
           OutlinedButton(
-            onPressed: _showGstinSheet,
+            onPressed:
+                _showGstinSheet,
 
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
+            style:
+                OutlinedButton.styleFrom(
+              foregroundColor:
+                  AppColors.primary,
 
               side: const BorderSide(
-                color: AppColors.primary,
-                width: AppSpacing.borderMedium,
+                color:
+                    AppColors.primary,
               ),
 
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xl,
-                vertical: AppSpacing.md,
-              ),
-
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(
-                  AppSpacing.radiusCircular,
+              shape:
+                  RoundedRectangleBorder(
+                borderRadius:
+                    BorderRadius.circular(
+                  AppSpacing
+                      .radiusCircular,
                 ),
               ),
             ),
 
             child: Text(
-              'Add GSTIN',
-              style: AppTextStyles.reviewAction,
+              _viewModel.hasGstin
+                  ? 'Change'
+                  : 'Add GSTIN',
+
+              style: AppTextStyles
+                  .reviewAction,
             ),
           ),
         ],
@@ -299,15 +312,16 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // COUPON CARD
-  // ============================================================
+  // =========================================================
+  // COUPON
+  // =========================================================
 
   Widget _buildCouponCard() {
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.symmetric(
+      padding:
+          const EdgeInsets.symmetric(
         horizontal: AppSpacing.xxl,
         vertical: AppSpacing.xl,
       ),
@@ -316,12 +330,17 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
         color: AppColors.primary.withOpacity(
           AppColors.opacityExtraLight,
         ),
-        borderRadius: BorderRadius.circular(
+
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusCard,
         ),
+
         border: Border.all(
-          color: AppColors.primaryLight.withOpacity(
-            AppColors.opacityLightStrong,
+          color: AppColors.primaryLight
+              .withOpacity(
+            AppColors
+                .opacityLightStrong,
           ),
         ),
       ),
@@ -331,7 +350,6 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           const Icon(
             Icons.local_offer_outlined,
             color: AppColors.primary,
-            size: AppSpacing.iconLarge,
           ),
 
           const SizedBox(
@@ -341,18 +359,26 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           Expanded(
             child: RichText(
               text: TextSpan(
-                style: AppTextStyles.reviewBody,
+                style:
+                    AppTextStyles.reviewBody,
 
                 children: [
-                  const TextSpan(
-                    text: 'You saved ₹15 with ',
+                  TextSpan(
+                    text:
+                        'You saved ₹${_viewModel.couponDiscount.toInt()} with ',
                   ),
 
                   TextSpan(
-                    text: couponCode,
-                    style: AppTextStyles.reviewBody.copyWith(
-  fontWeight: AppTypography.semiBold,
-),
+                    text: _viewModel
+                        .couponCode,
+
+                    style:
+                        AppTextStyles.reviewBody
+                            .copyWith(
+                      fontWeight:
+                          AppTypography
+                              .semiBold,
+                    ),
                   ),
                 ],
               ),
@@ -360,17 +386,17 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           ),
 
           GestureDetector(
-            onTap: () {
-              setState(() {
-                couponApplied = false;
-              });
-            },
+            onTap:
+                _viewModel.removeCoupon,
 
             child: Text(
               'Remove',
-              style: AppTextStyles.reviewAction.copyWith(
-  color: AppColors.error,
-),
+
+              style: AppTextStyles
+                  .reviewAction
+                  .copyWith(
+                color: AppColors.error,
+              ),
             ),
           ),
         ],
@@ -378,9 +404,9 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // GOODS DETAILS CARD
-  // ============================================================
+  // =========================================================
+  // GOODS DETAILS
+  // =========================================================
 
   Widget _buildGoodsDetailsCard() {
     return Container(
@@ -392,9 +418,12 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(
+
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusCard,
         ),
+
         border: Border.all(
           color: AppColors.border,
         ),
@@ -402,25 +431,30 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
       child: Column(
         children: [
-          // ------------------------------------------------------
-          // TITLE
-          // ------------------------------------------------------
-
           Row(
             children: [
               Expanded(
                 child: Text(
                   'Goods Details',
-                  style: AppTextStyles.reviewSectionTitle,
+
+                  style: AppTextStyles
+                      .reviewSectionTitle,
                 ),
               ),
 
               GestureDetector(
-                onTap: _changeGoodsDetails,
+                onTap: () {
+                  _viewModel
+                      .changeGoodsDetails(
+                    context,
+                  );
+                },
 
                 child: Text(
                   'Change',
-                  style: AppTextStyles.reviewAction,
+
+                  style: AppTextStyles
+                      .reviewAction,
                 ),
               ),
             ],
@@ -430,24 +464,23 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
             height: AppSpacing.xxl,
           ),
 
-          // ------------------------------------------------------
-          // ROW 1
-          // ------------------------------------------------------
-
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _buildGoodsItem(
+                child:
+                    _buildGoodsItem(
                   title: 'Category',
-                  value: goodsCategory,
+                  value: _viewModel
+                      .goodsCategory,
                 ),
               ),
 
               Expanded(
-                child: _buildGoodsItem(
+                child:
+                    _buildGoodsItem(
                   title: 'Weight',
-                  value: goodsWeight,
+                  value: _viewModel
+                      .goodsWeight,
                 ),
               ),
             ],
@@ -457,24 +490,23 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
             height: AppSpacing.xxl,
           ),
 
-          // ------------------------------------------------------
-          // ROW 2
-          // ------------------------------------------------------
-
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: _buildGoodsItem(
+                child:
+                    _buildGoodsItem(
                   title: 'Packages',
-                  value: goodsPackages,
+                  value: _viewModel
+                      .goodsPackages,
                 ),
               ),
 
               Expanded(
-                child: _buildGoodsItem(
+                child:
+                    _buildGoodsItem(
                   title: 'Value',
-                  value: goodsValue,
+                  value: _viewModel
+                      .goodsValue,
                 ),
               ),
             ],
@@ -484,20 +516,19 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // GOODS ITEM
-  // ============================================================
-
   Widget _buildGoodsItem({
     required String title,
     required String value,
   }) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+
       children: [
         Text(
           title,
-          style: AppTextStyles.reviewLabel,
+          style:
+              AppTextStyles.reviewLabel,
         ),
 
         const SizedBox(
@@ -506,15 +537,16 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
         Text(
           value,
-          style: AppTextStyles.reviewValue,
+          style:
+              AppTextStyles.reviewValue,
         ),
       ],
     );
   }
 
-  // ============================================================
-  // RESTRICTED ITEMS CARD
-  // ============================================================
+  // =========================================================
+  // RESTRICTED ITEMS
+  // =========================================================
 
   Widget _buildRestrictedItemsCard() {
     return Container(
@@ -526,51 +558,51 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
       decoration: BoxDecoration(
         color: AppColors.surface,
-        borderRadius: BorderRadius.circular(
+
+        borderRadius:
+            BorderRadius.circular(
           AppSpacing.radiusCard,
         ),
+
         border: Border.all(
-          color: AppColors.error.withOpacity(
-            AppColors.opacityLight,
-          ),
+          color: AppColors.border,
         ),
       ),
 
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // ------------------------------------------------------
-          // HEADER
-          // ------------------------------------------------------
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
 
+        children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const Icon(
                 Icons.warning_amber_rounded,
-                color: AppColors.error,
-                size: AppSpacing.iconLarge,
+                color: AppColors.primary,
               ),
 
               const SizedBox(
-                width: AppSpacing.lg,
+                width: AppSpacing.md,
               ),
 
               Expanded(
                 child: Text(
                   'Do not send restricted items',
-                  style: AppTextStyles.reviewSectionTitle.copyWith(
-  color: AppColors.error,
-),
+
+                  style: AppTextStyles
+                      .reviewSectionTitle,
                 ),
               ),
 
               GestureDetector(
-                onTap: _showRestrictedItems,
+                onTap:
+                    _showRestrictedItems,
 
                 child: Text(
                   'View List',
-                  style: AppTextStyles.reviewAction,
+
+                  style: AppTextStyles
+                      .reviewAction,
                 ),
               ),
             ],
@@ -579,10 +611,6 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           const SizedBox(
             height: AppSpacing.xl,
           ),
-
-          // ------------------------------------------------------
-          // BULLETS
-          // ------------------------------------------------------
 
           _buildBullet(
             'No illegal goods, hazardous materials, or flammable items.',
@@ -608,17 +636,18 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // BULLET
-  // ============================================================
-
-  Widget _buildBullet(String text) {
+  Widget _buildBullet(
+    String text,
+  ) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
+
       children: [
         Text(
           '•',
-          style: AppTextStyles.reviewSecondary,
+          style: AppTextStyles
+              .reviewSecondary,
         ),
 
         const SizedBox(
@@ -628,8 +657,12 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
         Expanded(
           child: Text(
             text,
-            style: AppTextStyles.bodyLarge.copyWith(
-              color: AppColors.textSecondary,
+
+            style:
+                AppTextStyles.bodyLarge
+                    .copyWith(
+              color: AppColors
+                  .textSecondary,
               height: 1.45,
             ),
           ),
@@ -638,9 +671,9 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // BOTTOM BOOKING BAR
-  // ============================================================
+  // =========================================================
+  // BOTTOM BAR
+  // =========================================================
 
   Widget _buildBottomBookingBar() {
     return Container(
@@ -656,19 +689,24 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
       decoration: BoxDecoration(
         color: AppColors.surface,
 
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(
-            AppSpacing.radiusCard,
+        border: const Border(
+          top: BorderSide(
+            color: AppColors.border,
           ),
         ),
 
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(
+            color: AppColors.black
+                .withOpacity(
               AppColors.opacityShadow,
             ),
-            blurRadius: AppSpacing.shadowBlur,
-            offset: const Offset(0, -5),
+
+            blurRadius:
+                AppSpacing.shadowBlur,
+
+            offset:
+                const Offset(0, -4),
           ),
         ],
       ),
@@ -677,64 +715,76 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
         top: false,
 
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // ==================================================
-            // PAYMENT + PRICE
-            // ==================================================
-
             Expanded(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment:
+                    CrossAxisAlignment
+                        .start,
+
+                mainAxisSize:
+                    MainAxisSize.min,
+
                 children: [
-                  GestureDetector(
-                    onTap: _showPaymentMethods,
+                  InkWell(
+                    onTap:
+                        _showPaymentMethods,
 
                     child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                      mainAxisSize:
+                          MainAxisSize.min,
+
                       children: [
                         const Icon(
-                          Icons.payments_outlined,
-                          color: AppColors.primary,
-                          size: AppSpacing.iconMedium,
+                          Icons
+                              .payments_outlined,
+
+                          size: AppSpacing
+                              .iconMedium,
                         ),
 
                         const SizedBox(
-                          width: AppSpacing.sm,
+                          width:
+                              AppSpacing.sm,
                         ),
 
                         Text(
-                          paymentMethod,
-                          style: AppTextStyles.reviewSectionTitle,
-                        ),
+                          _viewModel
+                              .paymentMethod,
 
-                        const SizedBox(
-                          width: AppSpacing.xs,
+                          style: AppTextStyles
+                              .reviewSectionTitle,
                         ),
 
                         const Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          size: AppSpacing.iconMedium,
+                          Icons
+                              .keyboard_arrow_down_rounded,
                         ),
                       ],
                     ),
                   ),
 
                   const SizedBox(
-                    height: AppSpacing.xs,
+                    height:
+                        AppSpacing.xs,
                   ),
 
                   Text(
-                    '₹${totalAmount.toInt()}',
-                    style: AppTextStyles.reviewPrice,
+                    '₹${_viewModel.totalAmount.toInt()}',
+
+                    style: AppTextStyles
+                        .reviewPrice,
                   ),
 
                   GestureDetector(
-                    onTap: _showFareBreakup,
+                    onTap:
+                        _showFareBreakup,
 
                     child: Text(
                       'View Breakup',
-                      style: AppTextStyles.reviewAction,
+
+                      style: AppTextStyles
+                          .reviewAction,
                     ),
                   ),
                 ],
@@ -745,20 +795,24 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
               width: AppSpacing.md,
             ),
 
-            // ==================================================
-            // BOOK BUTTON
-            // ==================================================
-
             Expanded(
               child: SizedBox(
-                height: AppSpacing.buttonHeight,
+                height:
+                    AppSpacing.buttonHeight,
 
                 child: ElevatedButton(
-                  onPressed: _bookVehicle,
+                  onPressed: () {
+                    _viewModel
+                        .bookVehicle(
+                      context,
+                    );
+                  },
 
                   child: Text(
-                    'Book 2 Wheeler',
-                    style: AppTextStyles.reviewButton,
+                    'Book ${_viewModel.vehicleName}',
+
+                    style: AppTextStyles
+                        .reviewButton,
                   ),
                 ),
               ),
@@ -769,301 +823,142 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // FARE BREAKUP BOTTOM SHEET
-  // ============================================================
+  // =========================================================
+  // FARE BREAKUP
+  // =========================================================
 
   void _showFareBreakup() {
+    final fare =
+        _viewModel.fareBreakup;
+
     showModalBottomSheet(
       context: context,
 
       isScrollControlled: true,
 
-      backgroundColor: AppColors.transparent,
+      backgroundColor:
+          AppColors.transparent,
 
-      barrierColor: AppColors.overlay,
+      barrierColor:
+          AppColors.overlay,
 
       builder: (context) {
         return SafeArea(
           top: false,
 
           child: Container(
-            width: double.infinity,
-
-            constraints: BoxConstraints(
-              maxHeight:
-                  MediaQuery.of(context).size.height * 0.85,
+            padding:
+                const EdgeInsets.all(
+              AppSpacing.xxl,
             ),
 
-            decoration: const BoxDecoration(
-              color: AppColors.surface,
+            decoration:
+                const BoxDecoration(
+              color:
+                  AppColors.background,
 
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(
-                  30,
-                ),
+              borderRadius:
+                  BorderRadius.vertical(
+                top: Radius.circular(30),
               ),
             ),
 
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.screenHorizontal,
-                AppSpacing.md,
-                AppSpacing.screenHorizontal,
-                AppSpacing.xxl,
-              ),
+            child: Column(
+              mainAxisSize:
+                  MainAxisSize.min,
 
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // =================================================
-                  // DRAG HANDLE
-                  // =================================================
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
 
-                  Center(
-                    child: Container(
-                      width: 86,
-                      height: 5,
+              children: [
+                Center(
+                  child: Container(
+                    width: 60,
+                    height: 5,
 
-                      decoration: BoxDecoration(
-                        color: AppColors.border,
-                        borderRadius:
-                            BorderRadius.circular(
-                          AppSpacing.radiusCircular,
-                        ),
-                      ),
-                    ),
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xxl,
-                  ),
-
-                  // =================================================
-                  // HEADER
-                  // =================================================
-
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          'Fare Breakup',
-                          style: AppTextStyles.heading1.copyWith(
-                            fontWeight:
-                                AppTypography.extraBold,
-                          ),
-                        ),
-                      ),
-
-                      IconButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-
-                        icon: const Icon(
-                          Icons.close_rounded,
-                          size: AppSpacing.iconMedium,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xxxl,
-                  ),
-
-                  // =================================================
-                  // FARE ROWS
-                  // =================================================
-
-                  _buildFareRow(
-                    'Trip Fare',
-                    '₹${tripFare.toInt()}',
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xl,
-                  ),
-
-                  _buildFareRow(
-                    'Distance Charge',
-                    '₹${distanceCharge.toInt()}',
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xl,
-                  ),
-
-                  _buildFareRow(
-                    'Loading/Unloading',
-                    loadingUnloadingCharge == 0
-                        ? 'Free'
-                        : '₹${loadingUnloadingCharge.toInt()}',
-                    valueColor:
-                        loadingUnloadingCharge == 0
-                            ? AppColors.primary
-                            : AppColors.textPrimary,
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xl,
-                  ),
-
-                  _buildFareRow(
-                    'Platform Fee',
-                    '₹${platformFee.toInt()}',
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xl,
-                  ),
-
-                  _buildFareRow(
-                    'Taxes',
-                    '₹${taxes.toInt()}',
-                  ),
-
-                  if (couponApplied) ...[
-                    const SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    _buildFareRow(
-                      'Discount ($couponCode)',
-                      '- ₹${discount.toInt()}',
-                      titleColor: AppColors.primary,
-                      valueColor: AppColors.primary,
-                    ),
-                  ],
-
-                  const SizedBox(
-                    height: AppSpacing.lg,
-                  ),
-
-                  const Divider(),
-
-                  const SizedBox(
-                    height: AppSpacing.xl,
-                  ),
-
-                  // =================================================
-                  // AMOUNT PAYABLE
-                  // =================================================
-
-                  Container(
-                    width: double.infinity,
-
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.xl,
-                      vertical: AppSpacing.xl,
-                    ),
-
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withOpacity(
-                        AppColors.opacityExtraLight,
-                      ),
+                    decoration:
+                        BoxDecoration(
+                      color:
+                          AppColors.border,
 
                       borderRadius:
-                          BorderRadius.circular(
-                        AppSpacing.radiusCard,
-                      ),
+                          BorderRadius
+                              .circular(100),
+                    ),
+                  ),
+                ),
 
-                      border: Border.all(
-                        color:
-                            AppColors.primaryLight.withOpacity(
-                          AppColors.opacityLightStrong,
-                        ),
+                const SizedBox(
+                  height:
+                      AppSpacing.xxl,
+                ),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Fare Breakup',
+
+                        style:
+                            AppTextStyles
+                                .heading1,
                       ),
                     ),
 
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            'Amount Payable',
-                            style:
-                                AppTextStyles.heading2.copyWith(
-                              fontWeight:
-                                  AppTypography.bold,
-                            ),
-                          ),
-                        ),
-
-                        Text(
-                          '₹${totalAmount.toInt()}',
-                          style:
-                              AppTextStyles.displayMedium.copyWith(
-                            color: AppColors.primary,
-                            fontWeight:
-                                AppTypography.extraBold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.lg,
-                  ),
-
-                  // =================================================
-                  // INFORMATION
-                  // =================================================
-
-                  Row(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-
-                    children: [
-                      const Icon(
-                        Icons.info_outline_rounded,
-                        size: AppSpacing.iconSmall,
-                        color: AppColors.textSecondary,
-                      ),
-
-                      const SizedBox(
-                        width: AppSpacing.md,
-                      ),
-
-                      Expanded(
-                        child: Text(
-                          'Includes all applicable taxes and fees. '
-                          'Final amount may vary based on actual '
-                          'wait time or route changes.',
-                          style:
-                              AppTextStyles.bodyMedium.copyWith(
-                            height: 1.5,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(
-                    height: AppSpacing.xxl,
-                  ),
-
-                  // =================================================
-                  // DONE
-                  // =================================================
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: AppSpacing.buttonHeight,
-
-                    child: ElevatedButton(
+                    IconButton(
                       onPressed: () {
-                        Navigator.pop(context);
+                        Navigator.pop(
+                          context,
+                        );
                       },
 
-                      child: Text(
-                        'Done',
-                        style: AppTextStyles.buttonText,
+                      icon: const Icon(
+                        Icons.close_rounded,
                       ),
                     ),
+                  ],
+                ),
+
+                const SizedBox(
+                  height:
+                      AppSpacing.xxl,
+                ),
+
+                _fareRow(
+                  'Trip Fare',
+                  fare.tripFare,
+                ),
+
+                _fareRow(
+                  'Distance Charge',
+                  fare.distanceCharge,
+                ),
+
+                _fareRow(
+                  'Platform Fee',
+                  fare.platformFee,
+                ),
+
+                _fareRow(
+                  'Taxes',
+                  fare.taxes,
+                ),
+
+                if (fare.discount > 0)
+                  _fareRow(
+                    'Discount',
+                    -fare.discount,
                   ),
-                ],
-              ),
+
+                const Divider(),
+
+                _fareRow(
+                  'Amount Payable',
+                  fare.total,
+
+                  bold: true,
+                ),
+              ],
             ),
           ),
         );
@@ -1071,76 +966,82 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // FARE ROW
-  // ============================================================
-
-  Widget _buildFareRow(
+  Widget _fareRow(
     String title,
-    String value, {
-    Color? titleColor,
-    Color? valueColor,
+    double amount, {
+    bool bold = false,
   }) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text(
-            title,
+    return Padding(
+      padding:
+          const EdgeInsets.symmetric(
+        vertical: AppSpacing.md,
+      ),
 
-            style: AppTextStyles.heading3.copyWith(
-              color:
-                  titleColor ?? AppColors.textSecondary,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+
+              style: bold
+                  ? AppTextStyles
+                      .reviewSectionTitle
+                  : AppTextStyles
+                      .reviewFareTitle,
             ),
           ),
-        ),
 
-        Text(
-          value,
+          Text(
+            amount < 0
+                ? '- ₹${amount.abs().toInt()}'
+                : '₹${amount.toInt()}',
 
-          style: AppTextStyles.heading3.copyWith(
-            color:
-                valueColor ?? AppColors.textPrimary,
-            fontWeight: AppTypography.semiBold,
+            style: bold
+                ? AppTextStyles
+                    .reviewPrice
+                : AppTextStyles
+                    .reviewFareValue,
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  // ============================================================
+  // =========================================================
   // GSTIN SHEET
-  // ============================================================
+  // =========================================================
 
   void _showGstinSheet() {
-    final gstController = TextEditingController();
+    final controller =
+        TextEditingController(
+      text: _viewModel.gstin ?? '',
+    );
 
     showModalBottomSheet(
       context: context,
 
       isScrollControlled: true,
 
-      backgroundColor: AppColors.surface,
-
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            AppSpacing.radiusCard,
-          ),
-        ),
-      ),
+      backgroundColor:
+          AppColors.background,
 
       builder: (context) {
         return Padding(
           padding: EdgeInsets.fromLTRB(
-            AppSpacing.screenHorizontal,
+            AppSpacing
+                .screenHorizontal,
             AppSpacing.xxl,
-            AppSpacing.screenHorizontal,
-            MediaQuery.of(context).viewInsets.bottom +
+            AppSpacing
+                .screenHorizontal,
+            MediaQuery.of(context)
+                    .viewInsets
+                    .bottom +
                 AppSpacing.xxl,
           ),
 
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisSize:
+                MainAxisSize.min,
 
             crossAxisAlignment:
                 CrossAxisAlignment.start,
@@ -1148,7 +1049,9 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
             children: [
               Text(
                 'Add GSTIN',
-                style: AppTextStyles.heading1,
+
+                style:
+                    AppTextStyles.heading1,
               ),
 
               const SizedBox(
@@ -1156,13 +1059,16 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
               ),
 
               TextField(
-                controller: gstController,
+                controller: controller,
 
                 textCapitalization:
-                    TextCapitalization.characters,
+                    TextCapitalization
+                        .characters,
 
-                decoration: const InputDecoration(
-                  hintText: 'Enter GSTIN',
+                decoration:
+                    const InputDecoration(
+                  hintText:
+                      'Enter GSTIN',
                 ),
               ),
 
@@ -1175,19 +1081,27 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
                 child: ElevatedButton(
                   onPressed: () {
-                    final gstin =
-                        gstController.text.trim();
-
-                    if (gstin.isEmpty) {
+                    if (controller
+                        .text
+                        .trim()
+                        .isEmpty) {
                       return;
                     }
 
-                    Navigator.pop(context);
+                    _viewModel.saveGstin(
+                      controller.text,
+                    );
+
+                    Navigator.pop(
+                      context,
+                    );
                   },
 
                   child: Text(
                     'Save GSTIN',
-                    style: AppTextStyles.buttonText,
+
+                    style: AppTextStyles
+                        .buttonText,
                   ),
                 ),
               ),
@@ -1198,165 +1112,64 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     );
   }
 
-  // ============================================================
-  // PAYMENT METHODS
-  // ============================================================
+  // =========================================================
+  // TEMP PAYMENT
+  // =========================================================
 
   void _showPaymentMethods() {
-    showModalBottomSheet(
-      context: context,
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) {
+      return PaymentMethodSheet(
+        selectedMethod: _viewModel.paymentMethod,
+        amount: _viewModel.totalAmount,
+        onSelected: (method) {
+          _viewModel.changePaymentMethod(method);
 
-      backgroundColor: AppColors.surface,
-
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            AppSpacing.radiusCard,
-          ),
-        ),
-      ),
-
-      builder: (context) {
-        return SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(
-              AppSpacing.xxl,
-            ),
-
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-
-              children: [
-                Text(
-                  'Payment Method',
-                  style: AppTextStyles.heading1,
-                ),
-
-                const SizedBox(
-                  height: AppSpacing.xl,
-                ),
-
-                _buildPaymentOption(
-                  icon: Icons.payments_outlined,
-                  title: 'Cash',
-                  selected:
-                      paymentMethod == 'Cash',
-                  onTap: () {
-                    setState(() {
-                      paymentMethod = 'Cash';
-                    });
-
-                    Navigator.pop(context);
-                  },
-                ),
-
-                const SizedBox(
-                  height: AppSpacing.md,
-                ),
-
-                _buildPaymentOption(
-                  icon:
-                      Icons.account_balance_wallet_outlined,
-                  title: 'Online Payment',
-                  selected:
-                      paymentMethod == 'Online Payment',
-                  onTap: () {
-                    setState(() {
-                      paymentMethod =
-                          'Online Payment';
-                    });
-
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
+          Navigator.pop(context);
+        },
+      );
+    },
+  );
+}
+  Widget _paymentOption(
+    String method,
+  ) {
+    return ListTile(
+      onTap: () {
+        _viewModel
+            .changePaymentMethod(
+          method,
         );
+
+        Navigator.pop(context);
       },
+
+      leading: const Icon(
+        Icons.payments_outlined,
+      ),
+
+      title: Text(method),
+
+      trailing:
+          _viewModel.paymentMethod ==
+                  method
+              ? const Icon(
+                  Icons
+                      .check_circle_rounded,
+                )
+              : null,
     );
   }
 
-  // ============================================================
-  // PAYMENT OPTION
-  // ============================================================
-
-  Widget _buildPaymentOption({
-    required IconData icon,
-    required String title,
-    required bool selected,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-
-      borderRadius: BorderRadius.circular(
-        AppSpacing.radiusMedium,
-      ),
-
-      child: Container(
-        width: double.infinity,
-
-        padding: const EdgeInsets.all(
-          AppSpacing.lg,
-        ),
-
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(
-            AppSpacing.radiusMedium,
-          ),
-
-          border: Border.all(
-            color: selected
-                ? AppColors.primary
-                : AppColors.border,
-
-            width: selected
-                ? AppSpacing.borderMedium
-                : AppSpacing.borderThin,
-          ),
-        ),
-
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              color: AppColors.primary,
-              size: AppSpacing.iconMedium,
-            ),
-
-            const SizedBox(
-              width: AppSpacing.lg,
-            ),
-
-            Expanded(
-              child: Text(
-                title,
-                style: AppTextStyles.heading3,
-              ),
-            ),
-
-            if (selected)
-              const Icon(
-                Icons.check_circle_rounded,
-                color: AppColors.primary,
-                size: AppSpacing.iconMedium,
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ============================================================
-  // RESTRICTED ITEMS
-  // ============================================================
+  // =========================================================
+  // RESTRICTED ITEMS SHEET
+  // =========================================================
 
   void _showRestrictedItems() {
-    const restrictedItems = [
+    const items = [
       'Illegal goods or prohibited substances',
       'Explosives and flammable materials',
       'Hazardous chemicals',
@@ -1368,170 +1181,54 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
     showModalBottomSheet(
       context: context,
 
-      isScrollControlled: true,
-
-      backgroundColor: AppColors.surface,
-
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(
-            AppSpacing.radiusCard,
-          ),
-        ),
-      ),
-
       builder: (context) {
         return SafeArea(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.xxl,
-              AppSpacing.xxl,
-              AppSpacing.xxl,
+            padding:
+                const EdgeInsets.all(
               AppSpacing.xxl,
             ),
 
             child: Column(
-              mainAxisSize: MainAxisSize.min,
+              mainAxisSize:
+                  MainAxisSize.min,
 
               crossAxisAlignment:
-                  CrossAxisAlignment.start,
+                  CrossAxisAlignment
+                      .start,
 
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Restricted Items',
-                        style:
-                            AppTextStyles.heading1,
-                      ),
-                    ),
+                Text(
+                  'Restricted Items',
 
-                    IconButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-
-                      icon: const Icon(
-                        Icons.close_rounded,
-                      ),
-                    ),
-                  ],
+                  style:
+                      AppTextStyles.heading1,
                 ),
 
                 const SizedBox(
                   height: AppSpacing.xl,
                 ),
 
-                ...restrictedItems.map(
-                  (item) {
-                    return Padding(
-                      padding:
-                          const EdgeInsets.only(
-                        bottom: AppSpacing.lg,
-                      ),
-
-                      child: Row(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.start,
-
-                        children: [
-                          const Icon(
-                            Icons.close_rounded,
-                            color: AppColors.error,
-                            size: AppSpacing.iconSmall,
-                          ),
-
-                          const SizedBox(
-                            width: AppSpacing.md,
-                          ),
-
-                          Expanded(
-                            child: Text(
-                              item,
-                              style:
-                                  AppTextStyles.bodyLarge.copyWith(
-                                color:
-                                    AppColors.textSecondary,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                ),
-
-                const SizedBox(
-                  height: AppSpacing.sm,
-                ),
-
-                SizedBox(
-                  width: double.infinity,
-
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
+                for (final item in items)
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(
+                      bottom:
+                          AppSpacing.md,
+                    ),
 
                     child: Text(
-                      'Got It',
-                      style:
-                          AppTextStyles.buttonText,
+                      '• $item',
+
+                      style: AppTextStyles
+                          .bodyLarge,
                     ),
                   ),
-                ),
               ],
             ),
           ),
         );
       },
     );
-  }
-
-  // ============================================================
-  // CHANGE GOODS
-  // ============================================================
-
-  void _changeGoodsDetails() {
-    // ----------------------------------------------------------
-    // Connect this with your existing Goods Details screen.
-    //
-    // Example:
-    //
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => const GoodsDetailsScreen(),
-    //   ),
-    // );
-    // ----------------------------------------------------------
-
-    debugPrint('Change Goods Details');
-  }
-
-  // ============================================================
-  // BOOK VEHICLE
-  // ============================================================
-
-  void _bookVehicle() {
-    // ----------------------------------------------------------
-    // Connect this with your existing booking ViewModel/API.
-    //
-    // Example:
-    //
-    // context.read<BookingViewModel>().createBooking(...);
-    //
-    // ----------------------------------------------------------
-
-    debugPrint('================================');
-    debugPrint('BOOKING STARTED');
-    debugPrint('Vehicle: 2 Wheeler');
-    debugPrint('Payment: $paymentMethod');
-    debugPrint(
-      'Amount: ₹${totalAmount.toInt()}',
-    );
-    debugPrint('================================');
   }
 }

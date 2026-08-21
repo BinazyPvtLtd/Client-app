@@ -900,11 +900,15 @@ class _HomeViewState extends State<HomeView> {
           return Scaffold(
             backgroundColor: AppColors.background,
 
-            appBar: HomeAppBar(
-              onNotificationPressed:
-                  viewModel.onNotificationPressed,
-              onProfilePressed: viewModel.onProfilePressed,
-            ),
+           appBar: HomeAppBar(
+  onNotificationPressed: () {
+    viewModel.onNotificationPressed(
+      context,
+    );
+  },
+  onProfilePressed:
+      viewModel.onProfilePressed,
+),
 
             body: Stack(
               children: [
@@ -996,12 +1000,15 @@ class _HomeViewState extends State<HomeView> {
               ],
             ),
 
-            bottomNavigationBar: HomeBottomNavigation(
-              selectedIndex:
-                  viewModel.selectedBottomNavIndex,
-              onTap:
-                  viewModel.changeBottomNavigation,
-            ),
+//             bottomNavigationBar: HomeBottomNavigation(
+//   selectedIndex: viewModel.selectedBottomNavIndex,
+//   onTap: (index) {
+//     viewModel.changeBottomNavigation(
+//       context,
+//       index,
+//     );
+//   },
+// ),
           );
         },
       ),

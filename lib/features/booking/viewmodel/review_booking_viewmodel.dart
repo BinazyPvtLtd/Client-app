@@ -1,72 +1,146 @@
-// import 'package:flutter/foundation.dart';
+import 'package:client_app/features/booking/view/models/fare_breakup_model.dart';
+import 'package:client_app/features/searching_driver/view/searching_driver_screen.dart';
+import 'package:flutter/material.dart';
 
-// class ReviewBookingViewModel extends ChangeNotifier {
-//   // =========================================================
-//   // BOOKING DATA
-//   // =========================================================
 
-//   String _paymentMethod = 'Cash';
+class ReviewBookingViewModel extends ChangeNotifier {
+  // =========================================================
+  // PAYMENT
+  // =========================================================
 
-//   String get paymentMethod => _paymentMethod;
+  String _paymentMethod = 'Cash';
 
-//   // =========================================================
-//   // PAYMENT METHOD
-//   // ============================================
-//   void changePaymentMethod() {
-//     if (_paymentMethod == 'Cash') {
-//       _paymentMethod = 'Online';
-//     } else {
-//       _paymentMethod = 'Cash';
-//     }
+  String get paymentMethod => _paymentMethod;
 
-//     notifyListeners();
-//   }
+  void changePaymentMethod(String method) {
+  if (_paymentMethod == method) return;
 
-//   // =========================================================
-//   // GST
-//   // =========================================================
+  _paymentMethod = method;
+  notifyListeners();
+}
+  // =========================================================
+  // COUPON
+  // =========================================================
 
-//   void addGSTIN() {
-//     debugPrint('Add GSTIN tapped');
-//   }
+  bool _couponApplied = true;
 
-//   // =========================================================
-//   // REMOVE OFFER
-//   // =========================================================
+  bool get couponApplied => _couponApplied;
 
-//   void removeOffer() {
-//     debugPrint('Offer removed');
-//   }
+  String get couponCode => '2W15OFF';
 
-//   // =========================================================
-//   // CHANGE GOODS
-//   // =========================================================
+  double get couponDiscount =>
+      _couponApplied ? 15 : 0;
 
-//   void changeGoods() {
-//     debugPrint('Change goods tapped');
-//   }
+  void removeCoupon() {
+    _couponApplied = false;
+    notifyListeners();
+  }
 
-//   // =========================================================
-//   // VIEW RESTRICTED ITEMS
-//   // =========================================================
+  // =========================================================
+  // GOODS DETAILS
+  // =========================================================
 
-//   void viewRestrictedItems() {
-//     debugPrint('View restricted items tapped');
-//   }
+  String get goodsCategory => 'Household';
 
-//   // =========================================================
-//   // VIEW BREAKUP
-//   // =========================================================
+  String get goodsWeight => '20 kg';
 
-//   void viewBreakup() {
-//     debugPrint('View breakup tapped');
-//   }
+  String get goodsPackages => '3';
 
-//   // =========================================================
-//   // BOOK
-//   // =========================================================
+  String get goodsValue => '₹2,500';
 
-//   void bookVehicle() {
-//     debugPrint('Booking vehicle...');
-//   }
-// }
+  // =========================================================
+  // VEHICLE
+  // =========================================================
+
+  String get vehicleName => '2 Wheeler';
+
+  // =========================================================
+  // FARE
+  // =========================================================
+
+  FareBreakupModel get fareBreakup {
+    return FareBreakupModel(
+      tripFare: 120,
+      distanceCharge: 45,
+      loadingUnloadingCharge: 0,
+      platformFee: 5,
+      taxes: 15,
+      discount: couponDiscount,
+    );
+  }
+
+  double get totalAmount =>
+      fareBreakup.total;
+
+  // =========================================================
+  // GSTIN
+  // =========================================================
+
+  String? _gstin;
+
+  String? get gstin => _gstin;
+
+  bool get hasGstin =>
+      _gstin != null &&
+      _gstin!.isNotEmpty;
+
+  void saveGstin(String value) {
+    final trimmed = value.trim();
+
+    if (trimmed.isEmpty) return;
+
+    _gstin = trimmed;
+
+    notifyListeners();
+  }
+
+  void removeGstin() {
+    _gstin = null;
+    notifyListeners();
+  }
+
+  // =========================================================
+  // GOODS ACTION
+  // =========================================================
+
+  void changeGoodsDetails(
+    BuildContext context,
+  ) {
+    debugPrint('Change Goods Details');
+
+    // Later:
+    //
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(
+    //     builder: (_) =>
+    //         const GoodsDetailsScreen(),
+    //   ),
+    // );
+  }
+
+  // =========================================================
+  // BOOK VEHICLE
+  // =========================================================
+
+  void bookVehicle(
+  BuildContext context,
+) {
+  debugPrint('================================');
+  debugPrint('BOOKING CONFIRMED');
+  debugPrint('Vehicle: $vehicleName');
+  debugPrint('Payment: $paymentMethod');
+  debugPrint(
+    'Amount: ₹${totalAmount.toInt()}',
+  );
+  debugPrint('================================');
+
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) =>
+          const SearchingDriverScreen(),
+    ),
+  );
+}
+}

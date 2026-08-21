@@ -28,7 +28,7 @@ class AppTextStyles {
   // =========================================================
 
   static TextStyle get screenTitle => TextStyle(
-        fontSize: AppTypography.xxxlScaled,
+        fontSize: AppTypography.xxlScaled,
         fontWeight: AppTypography.bold,
         color: AppColors.textPrimary,
         height: 1.2,

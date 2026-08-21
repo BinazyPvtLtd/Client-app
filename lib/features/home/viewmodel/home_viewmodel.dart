@@ -98,7 +98,13 @@
 //     // Navigate to announcements screen.
 //   }
 // }
+
+
+
+
 import 'package:client_app/features/location/view/select_location_screen.dart';
+import 'package:client_app/features/notifications/view/notification_screen.dart';
+import 'package:client_app/features/orders/view/orders_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../model/home_service_model.dart';
@@ -106,20 +112,62 @@ import '../model/recent_booking_model.dart';
 import '../model/vehicle_model.dart';
 
 class HomeViewModel extends ChangeNotifier {
-  int _selectedBottomNavIndex = 0;
+  //int _selectedBottomNavIndex = 0;
 
-  int get selectedBottomNavIndex => _selectedBottomNavIndex;
+  //int get selectedBottomNavIndex => _selectedBottomNavIndex;
 
   // =========================================================
   // BOTTOM NAVIGATION
   // =========================================================
 
-  void changeBottomNavigation(int index) {
-    if (_selectedBottomNavIndex == index) return;
+//   void changeBottomNavigation(
+//   BuildContext context,
+//   int index,
+// ) {
+//   if (_selectedBottomNavIndex == index) return;
 
-    _selectedBottomNavIndex = index;
-    notifyListeners();
-  }
+//   switch (index) {
+//     case 0:
+//       _selectedBottomNavIndex = 0;
+//       notifyListeners();
+//       break;
+
+//     case 1:
+//       Navigator.push(
+//         context,
+//         MaterialPageRoute(
+//           builder: (_) => const OrdersScreen(),
+//         ),
+//       );
+//       break;
+
+//     case 2:
+//       debugPrint('Payments selected');
+
+//       // Later:
+//       // Navigator.push(
+//       //   context,
+//       //   MaterialPageRoute(
+//       //     builder: (_) => const PaymentsScreen(),
+//       //   ),
+//       // );
+
+//       break;
+
+//     case 3:
+//       debugPrint('Profile selected');
+
+//       // Later:
+//       // Navigator.push(
+//       //   context,
+//       //   MaterialPageRoute(
+//       //     builder: (_) => const ProfileScreen(),
+//       //   ),
+//       // );
+
+//       break;
+//   }
+// }
 
   // =========================================================
   // SERVICES
@@ -209,10 +257,24 @@ class HomeViewModel extends ChangeNotifier {
         break;
 
       case '2 Wheeler':
+      case '2 Wheelers':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SelectLocationScreen(),
+          ),
+        );
         debugPrint('2 Wheeler selected');
         break;
 
       case 'Mini Truck':
+      case 'Mini Trucks':
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const SelectLocationScreen(),
+          ),
+        );
         debugPrint('Mini Truck selected');
         break;
 
@@ -257,10 +319,16 @@ class HomeViewModel extends ChangeNotifier {
   // NOTIFICATIONS
   // =========================================================
 
-  void onNotificationPressed() {
-    debugPrint('Notification pressed');
-  }
-
+  void onNotificationPressed(
+  BuildContext context,
+) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (_) => const NotificationScreen(),
+    ),
+  );
+}
   // =========================================================
   // PROFILE
   // =========================================================

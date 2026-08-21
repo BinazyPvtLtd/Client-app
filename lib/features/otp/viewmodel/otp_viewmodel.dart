@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:client_app/custom_widget/main_navigation_screen.dart';
 import 'package:client_app/features/home/view/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -163,7 +164,7 @@ class OtpViewModel extends ChangeNotifier {
 
    Navigator.of(context).pushAndRemoveUntil(
   MaterialPageRoute(
-    builder: (_) => const HomeView(),
+    builder: (_) => const MainNavigationScreen(),
   ),
   (route) => false,
 );
