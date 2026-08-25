@@ -8,6 +8,10 @@ class AppAssets {
   static const String patgolitoLogo =
       'assets/images/logo/patgolito_logo.png';
 
+  static const String patgolitoLogo1 =
+      'assets/images/logo/patgolito_logoK.png';
+
+
   static const String patgolitoLogoWhite =
       'assets/images/logo/patgolito_logo_white.png';
 
@@ -19,7 +23,7 @@ class AppAssets {
   // =========================================================
 
   static const String loginTruck =
-      'assets/images/logo/login_truck.png';
+      'assets/images/logo/login_truck1.png';
 
   // =========================================================
   // BACKGROUNDS

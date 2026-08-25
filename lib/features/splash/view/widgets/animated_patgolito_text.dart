@@ -1,441 +1,699 @@
 import 'dart:math' as math;
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-class AnimatedPatgolitoText extends StatefulWidget {
-  const AnimatedPatgolitoText({
+class AnimatedPatgolitoLogo extends StatefulWidget {
+  const AnimatedPatgolitoLogo({
     super.key,
   });
 
   @override
-  State<AnimatedPatgolitoText> createState() =>
-      _AnimatedPatgolitoTextState();
+  State<AnimatedPatgolitoLogo> createState() =>
+      _AnimatedPatgolitoLogoState();
 }
 
-class _AnimatedPatgolitoTextState
-    extends State<AnimatedPatgolitoText>
+class _AnimatedPatgolitoLogoState
+    extends State<AnimatedPatgolitoLogo>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
+
+  late final Animation<double> _routeAnimation;
+
+  late final Animation<double> _truckOpacity;
+
+  late final Animation<double> _brandOpacity;
+
+  late final Animation<double> _tagScale;
 
   @override
   void initState() {
     super.initState();
 
+    // =========================================================
+    // MAIN ANIMATION CONTROLLER
+    // =========================================================
+
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2200),
+
+      // Truck movement itself remains smooth and premium.
+      duration: const Duration(
+        milliseconds: 4000,
+      ),
     );
 
-    // Start the O swap after the splash text appears.
-    Future.delayed(
-      const Duration(milliseconds: 650),
-      () {
-        if (!mounted) return;
+    // =========================================================
+    // ROUTE / TRUCK
+    //
+    // First ~8% delay
+    // then truck moves smoothly until ~82%.
+    // =========================================================
 
-        _controller.forward();
-      },
+    _routeAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(
+        0.05,
+    0.88,
+        curve: Curves.easeInOutCubicEmphasized,
+      ),
     );
+
+    // =========================================================
+    // TRUCK FADE
+    // =========================================================
+
+    _truckOpacity = TweenSequence<double>(
+      [
+        TweenSequenceItem(
+          tween: Tween<double>(
+            begin: 0,
+            end: 1,
+          ).chain(
+            CurveTween(
+              curve: Curves.easeOut,
+            ),
+          ),
+          weight: 15,
+        ),
+
+        TweenSequenceItem(
+          tween:  ConstantTween<double>(
+            1,
+          ),
+          weight: 85,
+        ),
+      ],
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(
+          0.04,
+          0.90,
+        ),
+      ),
+    );
+
+    // =========================================================
+    // PATGOLITO TEXT FADE
+    // =========================================================
+
+    _brandOpacity = CurvedAnimation(
+  parent: _controller,
+  curve: const Interval(
+    0.25,
+    0.55,
+    curve: Curves.easeOutCubic,
+  ),
+);
+
+    // =========================================================
+    // FINAL SOFT SCALE
+    // =========================================================
+
+    _tagScale = Tween<double>(
+      begin: 0.96,
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(
+          0.55,
+          0.92,
+          curve: Curves.easeOutCubic,
+        ),
+      ),
+    );
+
+    _controller.forward();
   }
 
   @override
   void dispose() {
     _controller.dispose();
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 55,
+      width: 340,
+      height: 215,
       child: AnimatedBuilder(
         animation: _controller,
-        builder: (context, child) {
-          return _buildText();
+        builder: (
+          context,
+          child,
+        ) {
+          return Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // =================================================
+              // ROUTE + TRUCK
+              // =================================================
+
+              SizedBox(
+                width: 320,
+                height: 125,
+                child: CustomPaint(
+                  painter: _DeliveryRoutePainter(
+                    progress:
+                        _routeAnimation.value,
+                  ),
+                  child: LayoutBuilder(
+                    builder: (
+                      context,
+                      constraints,
+                    ) {
+                      return _buildTruckRoute(
+                        constraints.biggest,
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+              const SizedBox(
+                height: 4,
+              ),
+
+              // =================================================
+              // PATGOLITO
+              // =================================================
+
+              FadeTransition(
+                opacity: _brandOpacity,
+                child: ScaleTransition(
+                  scale: _tagScale,
+                  child: Text(
+                    'PATGOLITO',
+                    textAlign:
+                        TextAlign.center,
+                    style:
+                        AppTextStyles.splashLogoText.copyWith(
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
         },
       ),
     );
   }
 
-  Widget _buildText() {
-    //const double fontSize = 26;
+  // ===========================================================
+  // TRUCK ROUTE
+  // ===========================================================
 
-     final TextStyle style = AppTextStyles.splashLogoText;
+  Widget _buildTruckRoute(
+    Size size,
+  ) {
+    final double progress =
+        _routeAnimation.value;
 
-    // =========================================================
-    // ACTUAL LETTER WIDTHS
-    // =========================================================
+    // Same Bezier used by painter.
+    final Offset start = Offset(
+      30,
+      size.height - 28,
+    );
 
-    final double pWidth = _measureText('P', style);
-    final double aWidth = _measureText('a', style);
-    final double tWidth = _measureText('t', style);
-    final double gWidth = _measureText('g', style);
-    final double oWidth = _measureText('o', style);
-    final double lWidth = _measureText('l', style);
-    final double iWidth = _measureText('i', style);
-    final double secondTWidth = _measureText('t', style);
+    final Offset control = Offset(
+      size.width / 2,
+      5,
+    );
 
-    // =========================================================
-    // EXACT O POSITIONS
-    // =========================================================
-
-    final double firstOPosition =
-        pWidth +
-        aWidth +
-        tWidth +
-        gWidth;
-
-    final double secondOPosition =
-        firstOPosition +
-        oWidth +
-        lWidth +
-        iWidth +
-        secondTWidth;
+    final Offset end = Offset(
+      size.width - 30,
+      size.height - 28,
+    );
 
     // =========================================================
-    // WHOLE WORD SHIMMER
+    // QUADRATIC BEZIER POSITION
     // =========================================================
 
-    final double shimmer = _shimmerValue();
+    final Offset truckPosition =
+        _quadraticBezier(
+      start,
+      control,
+      end,
+      progress,
+    );
 
+    // =========================================================
+    // PATH DIRECTION
+    // Used to rotate truck slightly according to route.
+    // =========================================================
+
+    final Offset tangent =
+        _quadraticBezierDerivative(
+      start,
+      control,
+      end,
+      progress,
+    );
+
+    final double angle =
+        math.atan2(
+      tangent.dy,
+      tangent.dx,
+    );
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        // =====================================================
+        // START PIN
+        // =====================================================
+
+        Positioned(
+          left: start.dx - 26,
+          top: start.dy - 31,
+          child: const _LocationPin(),
+        ),
+
+        // =====================================================
+        // END PIN
+        // =====================================================
+
+        Positioned(
+          left: end.dx - 26,
+          top: end.dy - 31,
+          child: const _LocationPin(),
+        ),
+
+        // =====================================================
+        // TRUCK
+        // =====================================================
+
+        Positioned(
+          left: truckPosition.dx - 31,
+          top: truckPosition.dy - 36,
+
+          child: Opacity(
+            opacity:
+                _truckOpacity.value,
+
+            child: Transform.rotate(
+              // Very subtle rotation only.
+              angle: angle * 0.08,
+
+              child: Transform.scale(
+                scale:
+                    1 +
+                    (0.015 *
+                        math.sin(
+                          progress *
+                              math.pi,
+                        )),
+
+                child: const _TruckWidget(),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ===========================================================
+  // QUADRATIC BEZIER
+  // ===========================================================
+
+  Offset _quadraticBezier(
+    Offset start,
+    Offset control,
+    Offset end,
+    double t,
+  ) {
+    final double inverse =
+        1 - t;
+
+    return Offset(
+      (inverse * inverse * start.dx) +
+          (2 *
+              inverse *
+              t *
+              control.dx) +
+          (t * t * end.dx),
+
+      (inverse * inverse * start.dy) +
+          (2 *
+              inverse *
+              t *
+              control.dy) +
+          (t * t * end.dy),
+    );
+  }
+
+  // ===========================================================
+  // BEZIER DIRECTION
+  // ===========================================================
+
+  Offset _quadraticBezierDerivative(
+    Offset start,
+    Offset control,
+    Offset end,
+    double t,
+  ) {
+    return Offset(
+      2 *
+          ((1 - t) *
+                  (control.dx -
+                      start.dx) +
+              t *
+                  (end.dx -
+                      control.dx)),
+
+      2 *
+          ((1 - t) *
+                  (control.dy -
+                      start.dy) +
+              t *
+                  (end.dy -
+                      control.dy)),
+    );
+  }
+}
+
+// =====================================================================
+// TRUCK
+// =====================================================================
+
+class _TruckWidget extends StatelessWidget {
+  const _TruckWidget();
+
+  @override
+  Widget build(BuildContext context) {
+    return const SizedBox(
+      width: 56,
+      height: 48,
+      child: Icon(
+        Icons.local_shipping_rounded,
+        size: 52,
+        color: AppColors.white,
+      ),
+    );
+  }
+}
+// =====================================================================
+// LOCATION PIN
+// =====================================================================
+
+class _LocationPin extends StatelessWidget {
+  const _LocationPin();
+
+  @override
+  Widget build(BuildContext context) {
     return SizedBox(
-      width: secondOPosition + oWidth,
-      height: 55,
+      width: 52,
+      height: 62,
       child: Stack(
-        clipBehavior: Clip.none,
+        alignment: Alignment.topCenter,
         children: [
-          // =====================================================
-          // P
-          // =====================================================
+          // ==========================================
+          // PIN
+          // ==========================================
 
-          _staticLetter(
-            'P',
-            left: 0,
-            style: style,
-            shimmer: shimmer,
+          CustomPaint(
+            size: const Size(
+              48,
+              56,
+            ),
+            painter: _LocationPinPainter(),
           ),
 
-          // =====================================================
-          // A
-          // =====================================================
+          // ==========================================
+          // CENTER DOT
+          // ==========================================
 
-          _staticLetter(
-            'a',
-            left: pWidth,
-            style: style,
-            shimmer: shimmer,
+          Positioned(
+            top: 13,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: const BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+              ),
+            ),
           ),
 
-          // =====================================================
-          // T
-          // =====================================================
+          // ==========================================
+          // SMALL BASE
+          // ==========================================
 
-          _staticLetter(
-            't',
-            left: pWidth + aWidth,
-            style: style,
-            shimmer: shimmer,
-          ),
-
-          // =====================================================
-          // G
-          // =====================================================
-
-          _staticLetter(
-            'g',
-            left: pWidth + aWidth + tWidth,
-            style: style,
-            shimmer: shimmer,
-          ),
-
-          // =====================================================
-          // L
-          // =====================================================
-
-          _staticLetter(
-            'l',
-            left: firstOPosition + oWidth,
-            style: style,
-            shimmer: shimmer,
-          ),
-
-          // =====================================================
-          // I
-          // =====================================================
-
-          _staticLetter(
-            'i',
-            left: firstOPosition + oWidth + lWidth,
-            style: style,
-            shimmer: shimmer,
-          ),
-
-          // =====================================================
-          // T
-          // =====================================================
-
-          _staticLetter(
-            't',
-            left: firstOPosition +
-                oWidth +
-                lWidth +
-                iWidth,
-            style: style,
-            shimmer: shimmer,
-          ),
-
-          // =====================================================
-          // FIRST O
-          // =====================================================
-
-          _buildFirstO(
-            position: firstOPosition,
-            targetPosition: secondOPosition,
-            width: oWidth,
-            style: style,
-            shimmer: shimmer,
-          ),
-
-          // =====================================================
-          // SECOND O
-          // =====================================================
-
-          _buildSecondO(
-            position: secondOPosition,
-            targetPosition: firstOPosition,
-            width: oWidth,
-            style: style,
-            shimmer: shimmer,
+          Positioned(
+            bottom: 0,
+            child: Container(
+              width: 30,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.white.withOpacity(
+                  0.75,
+                ),
+                borderRadius: BorderRadius.circular(
+                  100,
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
+}
 
-  // ===========================================================
-  // FIRST O
-  // ===========================================================
 
-  Widget _buildFirstO({
-    required double position,
-    required double targetPosition,
-    required double width,
-    required TextStyle style,
-    required double shimmer,
-  }) {
-    final double progress = Curves.easeInOutCubic.transform(
-      _controller.value,
+class _LocationPinPainter extends CustomPainter {
+  @override
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
+    final Paint paint = Paint()
+      ..color = AppColors.white
+      ..style = PaintingStyle.fill
+      ..isAntiAlias = true;
+
+    final Path path = Path();
+
+    final double centerX =
+        size.width / 2;
+
+    final double topRadius =
+        size.width * 0.40;
+
+    // Start from bottom point.
+    path.moveTo(
+      centerX,
+      size.height - 4,
     );
 
-    final double x = _interpolate(
-      position,
-      targetPosition,
-      progress,
+    // Left side.
+    path.cubicTo(
+      centerX - 6,
+      size.height - 14,
+      centerX - topRadius,
+      size.height * 0.53,
+      centerX - topRadius,
+      size.height * 0.35,
     );
 
-    // Arc.
-    final double arc =
-        -30 * math.sin(progress * math.pi);
-
-    // Landing bounce.
-    final double landingBounce =
-        progress > 0.75
-            ? -5 *
-                math.sin(
-                  ((progress - 0.75) / 0.25) * math.pi * 2,
-                ) *
-                (progress - 0.75) /
-                0.25
-            : 0;
-
-    final double y = 7 + arc + landingBounce;
-
-    final double rotation =
-        0.14 * math.sin(progress * math.pi);
-
-    final double scale =
-        1.0 +
-        (0.08 * math.sin(progress * math.pi));
-
-    return Positioned(
-      left: x,
-      top: y,
-      child: Transform.rotate(
-        angle: rotation,
-        child: Transform.scale(
-          scale: scale,
-          child: _shimmerText(
-            'o',
-            style,
-            shimmer,
-          ),
-        ),
-      ),
-    );
-  }
-
-  // ===========================================================
-  // SECOND O
-  // ===========================================================
-
-  Widget _buildSecondO({
-    required double position,
-    required double targetPosition,
-    required double width,
-    required TextStyle style,
-    required double shimmer,
-  }) {
-    final double progress = Curves.easeInOutCubic.transform(
-      _controller.value,
+    // Top-left curve.
+    path.cubicTo(
+      centerX - topRadius,
+      8,
+      centerX - 10,
+      2,
+      centerX,
+      2,
     );
 
-    final double x = _interpolate(
-      position,
-      targetPosition,
-      progress,
+    // Top-right curve.
+    path.cubicTo(
+      centerX + 10,
+      2,
+      centerX + topRadius,
+      8,
+      centerX + topRadius,
+      size.height * 0.35,
     );
 
-    // Opposite rotation.
-    final double rotation =
-        -0.14 * math.sin(progress * math.pi);
+    // Right side back to bottom.
+    path.cubicTo(
+      centerX + topRadius,
+      size.height * 0.53,
+      centerX + 6,
+      size.height - 14,
+      centerX,
+      size.height - 4,
+    );
 
-    // Same arc.
-    final double arc =
-        -30 * math.sin(progress * math.pi);
+    path.close();
 
-    final double landingBounce =
-        progress > 0.75
-            ? -5 *
-                math.sin(
-                  ((progress - 0.75) / 0.25) * math.pi * 2,
-                ) *
-                (progress - 0.75) /
-                0.25
-            : 0;
-
-    final double y = 7 + arc + landingBounce;
-
-    final double scale =
-        1.0 +
-        (0.08 * math.sin(progress * math.pi));
-
-    return Positioned(
-      left: x,
-      top: y,
-      child: Transform.rotate(
-        angle: rotation,
-        child: Transform.scale(
-          scale: scale,
-          child: _shimmerText(
-            'o',
-            style,
-            shimmer,
-          ),
-        ),
-      ),
+    canvas.drawPath(
+      path,
+      paint,
     );
   }
 
-  // ===========================================================
-  // STATIC LETTER
-  // ===========================================================
-
-  Widget _staticLetter(
-    String letter, {
-    required double left,
-    required TextStyle style,
-    required double shimmer,
-  }) {
-    return Positioned(
-      left: left,
-      top: 7,
-      child: _shimmerText(
-        letter,
-        style,
-        shimmer,
-      ),
-    );
+  @override
+  bool shouldRepaint(
+    covariant CustomPainter oldDelegate,
+  ) {
+    return false;
   }
+}
+// =====================================================================
+// ROUTE PAINTER
+// =====================================================================
 
-  // ===========================================================
-  // SHIMMER / BLINK
-  // ===========================================================
+class _DeliveryRoutePainter
+    extends CustomPainter {
+  final double progress;
 
-  double _shimmerValue() {
-    if (_controller.value < 0.85) {
-      return 0;
+  const _DeliveryRoutePainter({
+    required this.progress,
+  });
+
+  @override
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
+    // =========================================================
+    // ROUTE
+    // =========================================================
+
+    final Offset start = Offset(
+      30,
+      size.height - 24,
+    );
+
+    final Offset control = Offset(
+      size.width / 2,
+      5,
+    );
+
+    final Offset end = Offset(
+      size.width - 30,
+      size.height - 24,
+    );
+
+    final Path path = Path()
+      ..moveTo(
+        start.dx,
+        start.dy,
+      )
+      ..quadraticBezierTo(
+        control.dx,
+        control.dy,
+        end.dx,
+        end.dy,
+      );
+
+    // =========================================================
+    // INACTIVE ROUTE
+    // =========================================================
+
+    final Paint backgroundPaint =
+        Paint()
+          ..color = AppColors.white.withOpacity(
+            0.22,
+          )
+          ..strokeWidth = 4
+          ..style =
+              PaintingStyle.stroke
+          ..strokeCap =
+              StrokeCap.round;
+
+    canvas.drawPath(
+      path,
+      backgroundPaint,
+    );
+
+    // =========================================================
+    // ACTIVE ROUTE
+    // =========================================================
+
+    final Paint activePaint =
+        Paint()
+          ..color = AppColors.white
+          ..strokeWidth = 4
+          ..style =
+              PaintingStyle.stroke
+          ..strokeCap =
+              StrokeCap.round;
+
+    for (final PathMetric metric
+        in path.computeMetrics()) {
+      final Path animatedPath =
+          metric.extractPath(
+        0,
+        metric.length *
+            progress.clamp(
+              0.0,
+              1.0,
+            ),
+      );
+
+      canvas.drawPath(
+        animatedPath,
+        activePaint,
+      );
     }
 
-    final double progress =
-        (_controller.value - 0.85) / 0.15;
+    // =========================================================
+    // ARROW
+    // =========================================================
 
-    return math.sin(
-      progress * math.pi,
-    );
-  }
+    if (progress > 0.92) {
+      final Paint arrowPaint =
+          Paint()
+            ..color =
+                AppColors.white
+            ..strokeWidth = 4
+            ..strokeCap =
+                StrokeCap.round;
 
-  Widget _shimmerText(
-    String text,
-    TextStyle style,
-    double shimmer,
-  ) {
-    final double glow =
-        shimmer * 8;
-
-    return AnimatedDefaultTextStyle(
-      duration: const Duration(milliseconds: 80),
-      style: style.copyWith(
-        color: Color.lerp(
-          AppColors.white,
-          AppColors.primaryLight,
-          shimmer * 0.35,
+      canvas.drawLine(
+        Offset(
+          end.dx,
+          end.dy,
         ),
-        shadows: shimmer > 0
-            ? [
-                Shadow(
-                  color: AppColors.white.withOpacity(
-                    0.55 * shimmer,
-                  ),
-                  blurRadius: glow,
-                ),
-              ]
-            : null,
-      ),
-      child: Text(text),
-    );
+        Offset(
+          end.dx - 13,
+          end.dy - 10,
+        ),
+        arrowPaint,
+      );
+
+      canvas.drawLine(
+        Offset(
+          end.dx,
+          end.dy,
+        ),
+        Offset(
+          end.dx - 13,
+          end.dy + 7,
+        ),
+        arrowPaint,
+      );
+    }
   }
 
-  // ===========================================================
-  // TEXT MEASUREMENT
-  // ===========================================================
-
-  double _measureText(
-    String text,
-    TextStyle style,
+  @override
+  bool shouldRepaint(
+    covariant _DeliveryRoutePainter
+        oldDelegate,
   ) {
-    final TextPainter painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: style,
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-
-    return painter.width;
-  }
-
-  // ===========================================================
-  // INTERPOLATION
-  // ===========================================================
-
-  double _interpolate(
-    double start,
-    double end,
-    double progress,
-  ) {
-    return start +
-        ((end - start) * progress);
+    return oldDelegate.progress !=
+        progress;
   }
 }

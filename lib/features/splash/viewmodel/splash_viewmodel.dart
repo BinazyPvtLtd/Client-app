@@ -2,26 +2,33 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-class SplashViewModel extends ChangeNotifier {
+class SplashViewModel
+    extends ChangeNotifier {
   Timer? _navigationTimer;
 
   bool _isInitialized = false;
 
-  bool get isInitialized => _isInitialized;
+  bool get isInitialized =>
+      _isInitialized;
 
   // =========================================================
-  // INITIALIZE SPLASH
+  // INITIALIZE
   // =========================================================
 
   void initialize({
     required VoidCallback onComplete,
   }) {
-    if (_isInitialized) return;
+    if (_isInitialized) {
+      return;
+    }
 
     _isInitialized = true;
 
+    // Splash visible for total 5 seconds.
     _navigationTimer = Timer(
-      const Duration(milliseconds: 3200),
+      const Duration(
+        seconds: 3,
+      ),
       onComplete,
     );
   }
@@ -33,6 +40,7 @@ class SplashViewModel extends ChangeNotifier {
   @override
   void dispose() {
     _navigationTimer?.cancel();
+
     super.dispose();
   }
 }

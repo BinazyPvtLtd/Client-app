@@ -612,7 +612,7 @@ class _TripCompletedScreenState
 
               child: OutlinedButton(
                 onPressed: () {
-                  _viewModel.viewTripDetails(
+                  _viewModel.goToHome(
                     context,
                   );
                 },
@@ -639,7 +639,7 @@ class _TripCompletedScreenState
                 ),
 
                 child: Text(
-                  'View Trip Details',
+                  'Go to Home',
                   style: AppTextStyles
                       .buttonTextDark,
                 ),

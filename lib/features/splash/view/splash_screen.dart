@@ -1,144 +1,99 @@
-import 'package:client_app/core/constant/app_assets.dart';
 import 'package:client_app/features/auth/view/login_screen.dart';
+import 'package:client_app/features/splash/view/widgets/animated_patgolito_text.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
-import '../viewmodel/splash_viewmodel.dart';
-import 'widgets/animated_patgolito_text.dart';
 
-class SplashScreen extends StatefulWidget {
+import '../viewmodel/splash_viewmodel.dart';
+
+class SplashScreen
+    extends StatefulWidget {
   const SplashScreen({
     super.key,
   });
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  State<SplashScreen> createState() =>
+      _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
-    with TickerProviderStateMixin {
-
+class _SplashScreenState
+    extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   // =========================================================
-  // ANIMATIONS
+  // ENTRANCE
   // =========================================================
 
-  late final AnimationController _logoController;
+  late final AnimationController
+      _entranceController;
 
-  late final AnimationController _contentController;
+  late final Animation<double>
+      _fadeAnimation;
 
-  late final Animation<double> _logoScale;
-
-  late final Animation<double> _logoFade;
-
-  late final Animation<double> _contentFade;
-
-  late final Animation<Offset> _contentSlide;
+  late final Animation<double>
+      _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
 
     // =======================================================
-    // LOGO CONTROLLER
+    // SMOOTH SCREEN ENTRANCE
     // =======================================================
 
-    _logoController = AnimationController(
+    _entranceController =
+        AnimationController(
       vsync: this,
       duration: const Duration(
-        milliseconds: 900,
+        milliseconds: 650,
       ),
     );
 
-    _logoScale = Tween<double>(
-      begin: 0.55,
-      end: 1.0,
+    _fadeAnimation =
+        CurvedAnimation(
+      parent:
+          _entranceController,
+      curve:
+          Curves.easeOutCubic,
+    );
+
+    _scaleAnimation =
+        Tween<double>(
+      begin: 0.96,
+      end: 1,
     ).animate(
       CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.elasticOut,
+        parent:
+            _entranceController,
+        curve:
+            Curves.easeOutCubic,
       ),
     );
 
-    _logoFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _logoController,
-        curve: Curves.easeOut,
-      ),
-    );
+    _entranceController.forward();
 
     // =======================================================
-    // CONTENT CONTROLLER
+    // SPLASH TIMER
     // =======================================================
 
-    _contentController = AnimationController(
-      vsync: this,
-      duration: const Duration(
-        milliseconds: 700,
-      ),
-    );
-
-    _contentFade = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _contentController,
-        curve: Curves.easeOut,
-      ),
-    );
-
-    _contentSlide = Tween<Offset>(
-      begin: const Offset(0, 0.25),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _contentController,
-        curve: Curves.easeOutCubic,
-      ),
-    );
-
-    // =======================================================
-    // START
-    // =======================================================
-
-    _startAnimations();
-
-    // =======================================================
-    // INITIALIZE VIEWMODEL
-    // =======================================================
-
-    WidgetsBinding.instance.addPostFrameCallback(
+    WidgetsBinding.instance
+        .addPostFrameCallback(
       (_) {
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
 
-        context.read<SplashViewModel>().initialize(
-          onComplete: _goToNextScreen,
+        context
+            .read<SplashViewModel>()
+            .initialize(
+          onComplete:
+              _goToNextScreen,
         );
       },
     );
-  }
-
-  // =========================================================
-  // START ANIMATIONS
-  // =========================================================
-
-  Future<void> _startAnimations() async {
-    await _logoController.forward();
-
-    if (!mounted) return;
-
-    await Future.delayed(
-      const Duration(milliseconds: 100),
-    );
-
-    if (!mounted) return;
-
-    _contentController.forward();
   }
 
   // =========================================================
@@ -146,23 +101,52 @@ class _SplashScreenState extends State<SplashScreen>
   // =========================================================
 
   void _goToNextScreen() {
-  if (!mounted) return;
+    if (!mounted) {
+      return;
+    }
 
-  Navigator.pushReplacement(
-    context,
-    MaterialPageRoute(
-      builder: (_) => const LoginScreen(),
-    ),
-  );
-}
+    Navigator.of(context)
+        .pushReplacement(
+      PageRouteBuilder(
+        transitionDuration:
+            const Duration(
+          milliseconds: 450,
+        ),
+
+        pageBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+        ) {
+          return const LoginScreen();
+        },
+
+        transitionsBuilder: (
+          context,
+          animation,
+          secondaryAnimation,
+          child,
+        ) {
+          return FadeTransition(
+            opacity: CurvedAnimation(
+              parent: animation,
+              curve:
+                  Curves.easeOut,
+            ),
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
   // =========================================================
   // DISPOSE
   // =========================================================
 
   @override
   void dispose() {
-    _logoController.dispose();
-    _contentController.dispose();
+    _entranceController.dispose();
 
     super.dispose();
   }
@@ -172,77 +156,59 @@ class _SplashScreenState extends State<SplashScreen>
   // =========================================================
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(
+    BuildContext context,
+  ) {
     return Scaffold(
-      backgroundColor: AppColors.primary,
+      backgroundColor:
+          AppColors.primary,
 
       body: SafeArea(
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // =================================================
-              // LOGO
-              // =================================================
+          child: FadeTransition(
+            opacity:
+                _fadeAnimation,
 
-              FadeTransition(
-                opacity: _logoFade,
-                child: ScaleTransition(
-                  scale: _logoScale,
-                  child: _buildLogo(),
-                ),
-              ),
+            child: ScaleTransition(
+              scale:
+                  _scaleAnimation,
 
-              SizedBox(
-                height: AppSpacing.xl,
-              ),
+              child: Column(
+                mainAxisSize:
+                    MainAxisSize.min,
 
-              // =================================================
-              // PATGOLITO + TAGLINE
-              // =================================================
+                children: [
+                  // =====================================
+                  // ROUTE + TRUCK + PATGOLITO
+                  // =====================================
 
-              FadeTransition(
-                opacity: _contentFade,
-                child: SlideTransition(
-                  position: _contentSlide,
-                  child: Column(
-                    children: [
-                      const AnimatedPatgolitoText(),
+                  const AnimatedPatgolitoLogo(),
 
-                      const SizedBox(
-                        height: AppSpacing.sm,
-                      ),
-
-                      Text(
-                        'Move Anything. Anywhere.',
-                        style: AppTextStyles.splashTagline,
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+                  const SizedBox(
+                    height:
+                        AppSpacing.md,
                   ),
-                ),
+
+                  // =====================================
+                  // TAGLINE
+                  // =====================================
+
+                  Text(
+                    'Move Anything. Anywhere.',
+
+                    textAlign:
+                        TextAlign.center,
+
+                    style:
+                        AppTextStyles
+                            .splashTagline,
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
-
-  // =========================================================
-  // LOGO
-  // =========================================================
-
-Widget _buildLogo() {
-  return SizedBox(
-    width: 170,
-    height: 170,
-    child: Image.asset(
-      AppAssets.patgolitoLogo,
-      width: 170,
-      height: 170,
-      fit: BoxFit.contain,
-    ),
-  );
-}
 }

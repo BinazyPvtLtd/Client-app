@@ -1,3 +1,4 @@
+import 'package:client_app/custom_widget/main_navigation_screen.dart';
 import 'package:client_app/features/ride_rating/view/ride_rating_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -58,17 +59,17 @@ class TripCompletedViewModel extends ChangeNotifier {
   // TRIP DETAILS
   // =========================================================
 
-  void viewTripDetails(
+  void goToHome(
     BuildContext context,
   ) {
-    debugPrint('View trip details');
+    debugPrint('Go to home');
 
-    // Later:
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) => const TripDetailsScreen(),
-    //   ),
-    // );
+   
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const MainNavigationScreen(),
+      ),
+    );
   }
 }

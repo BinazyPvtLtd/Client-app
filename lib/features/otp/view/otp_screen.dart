@@ -365,70 +365,101 @@ class _OtpViewState extends State<_OtpView> {
   // =========================================================
 
   Widget _buildOtpField(
-    int index,
-    double width,
-  ) {
-    return SizedBox(
-      width: width,
-      height: width * 1.35,
-      child: KeyboardListener(
-        focusNode: _keyboardFocusNodes[index],
-        onKeyEvent: (event) {
-          _handleKeyEvent(
+  int index,
+  double width,
+) {
+  return SizedBox(
+    width: width,
+    height: 58, // compact + balanced
+    child: KeyboardListener(
+      focusNode: _keyboardFocusNodes[index],
+      onKeyEvent: (event) {
+        _handleKeyEvent(
+          index,
+          event,
+        );
+      },
+      child: TextField(
+        controller: _controllers[index],
+        focusNode: _focusNodes[index],
+
+        keyboardType: TextInputType.number,
+        textInputAction: index == 5
+            ? TextInputAction.done
+            : TextInputAction.next,
+
+        textAlign: TextAlign.center,
+        maxLength: 1,
+
+        inputFormatters: [
+          FilteringTextInputFormatter.digitsOnly,
+        ],
+
+        style: AppTextStyles.heading2.copyWith(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+        ),
+
+        decoration: InputDecoration(
+          counterText: '',
+
+          filled: true,
+          fillColor: AppColors.white,
+
+          contentPadding: EdgeInsets.zero,
+
+          // ==========================================
+          // NORMAL BORDER
+          // ==========================================
+
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: AppColors.border,
+              width: 1.2,
+            ),
+          ),
+
+          // ==========================================
+          // FOCUSED BORDER
+          // ==========================================
+
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: AppColors.primary,
+              width: 1.8,
+            ),
+          ),
+
+          // ==========================================
+          // DEFAULT BORDER
+          // ==========================================
+
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide(
+              color: AppColors.border,
+            ),
+          ),
+        ),
+
+        onChanged: (value) {
+          _onOtpChanged(
+            value,
             index,
-            event,
           );
         },
-        child: TextField(
-          controller: _controllers[index],
-          focusNode: _focusNodes[index],
-          keyboardType: TextInputType.number,
-          textInputAction: TextInputAction.next,
-          textAlign: TextAlign.center,
-          maxLength: 1,
-          inputFormatters: [
-            FilteringTextInputFormatter.digitsOnly,
-          ],
-          style: AppTextStyles.heading2.copyWith(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-          ),
-          decoration: InputDecoration(
-            counterText: '',
-            filled: true,
-            fillColor: AppColors.white,
-            contentPadding: EdgeInsets.zero,
-            enabledBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(2),
-              borderSide: BorderSide(
-                color: AppColors.textSecondary
-                    .withValues(
-                  alpha: 0.7,
-                ),
-                width: 1.5,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius:
-                  BorderRadius.circular(2),
-              borderSide: BorderSide(
-                color: AppColors.primary,
-                width: 2,
-              ),
-            ),
-          ),
-          onChanged: (value) {
-            _onOtpChanged(
-              value,
-              index,
-            );
-          },
-        ),
-      ),
-    );
-  }
 
+        onSubmitted: (_) {
+          if (index == 5) {
+            _verifyOtp();
+          }
+        },
+      ),
+    ),
+  );
+}
   // =========================================================
   // VERIFY BUTTON
   // =========================================================

@@ -1,7 +1,7 @@
+import 'package:client_app/features/auth/view/widgets/animated_delivery_scene.dart';
 import 'package:client_app/features/auth/viewmodel/login_viewmodel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
 import '../../../../core/constant/app_assets.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -64,7 +64,7 @@ class _LoginView extends StatelessWidget {
                       // =====================================================
 
                       SizedBox(
-                        height: AppSpacing.xxl,
+                        height: AppSpacing.md,
                       ),
 
                       Text(
@@ -100,9 +100,17 @@ class _LoginView extends StatelessWidget {
 ),
 
 
-_buildTruckImage(
-  width: size.width,
-  height: size.height,
+// _buildTruckImage(
+//   width: size.width,
+//   height: size.height,
+// ),
+
+AnimatedDeliveryScene(
+  height: size.height < 700
+      ? 210
+      : size.height < 850
+          ? 250
+          : 280,
 ),
                      
 
@@ -117,7 +125,7 @@ _buildTruckImage(
                       // =====================================================
 
                       SizedBox(
-                        height: AppSpacing.lg,
+                        height: AppSpacing.xl,
                       ),
 
                       const _ContinueButton(),
@@ -130,14 +138,14 @@ _buildTruckImage(
                         height: AppSpacing.xxl,
                       ),
 
-                      _buildSignup(context),
+                     // _buildSignup(context),
 
                       // =====================================================
                       // TERMS
                       // =====================================================
 
                       SizedBox(
-                        height: AppSpacing.xxxl,
+                        height: AppSpacing.xxl,
                       ),
 
                       _buildTerms(),
@@ -223,87 +231,97 @@ _buildTruckImage(
   // ===================================================================
   // APP ICON
   // ===================================================================
+// Widget _buildAppIcon() {
+//   return Container(
+//     width: 130,
+//     height: 130,
+//     decoration: BoxDecoration(
+//       color: AppColors.white,
+//       borderRadius: BorderRadius.circular(24),
+//       boxShadow: const [
+//         BoxShadow(
+//           color: Color(0x18000000),
+//           blurRadius: 16,
+//           offset: Offset(0, 6),
+//         ),
+//       ],
+//     ),
+//     child: ClipRRect(
+//       borderRadius: BorderRadius.circular(24),
+//       child: Padding(
+//         padding: const EdgeInsets.all(8),
+//         child: Image.asset(
+//           AppAssets.patgolitoLogo1,
+//           width: double.infinity,
+//           height: double.infinity,
+//           fit: BoxFit.contain,
+//           alignment: Alignment.center,
+//         ),
+//       ),
+//     ),
+//   );
+// }
 
-  Widget _buildAppIcon() {
-    return Container(
-      width: 112,
-      height: 112,
-      padding: const EdgeInsets.all(
-        AppSpacing.sm,
-      ),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 16,
-            offset: Offset(0, 6),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(17),
-        child: Image.asset(
-          AppAssets.patgolitoLogo,
-          fit: BoxFit.contain,
-        ),
-      ),
-    );
-  }
-
+Widget _buildAppIcon() {
+  return Image.asset(
+    AppAssets.patgolitoLogo1,
+    width: 170,
+    height: 120,
+    fit: BoxFit.contain,
+  );
+}
   // ===================================================================
   // TRUCK IMAGE
   // ===================================================================
 
-  Widget _buildTruckImage({
-    required double width,
-    required double height,
-  }) {
-    final double imageWidth = width < 380
-        ? width * 0.78
-        : width * 0.82;
+  // Widget _buildTruckImage({
+  //   required double width,
+  //   required double height,
+  // }) {
+  //   final double imageWidth = width < 380
+  //       ? width * 0.78
+  //       : width * 0.82;
 
-    final double imageHeight = height < 700
-        ? 210
-        : height < 850
-            ? 260
-            : 300;
+  //   final double imageHeight = height < 700
+  //       ? 210
+  //       : height < 850
+  //           ? 260
+  //           : 300;
 
-    return SizedBox(
-      width: imageWidth,
-      height: imageHeight,
-      child: Image.asset(
-        AppAssets.loginTruck,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
+  //   return SizedBox(
+  //     width: imageWidth,
+  //     height: imageHeight,
+  //     child: Image.asset(
+  //       AppAssets.loginTruck,
+  //       fit: BoxFit.contain,
+  //     ),
+  //   );
+  // }
 
   // ===================================================================
   // SIGN UP
   // ===================================================================
 
-  Widget _buildSignup(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.center,
-      children: [
-        Text(
-          'New to Patgolito? ',
-          style: AppTextStyles.signupText,
-        ),
-        GestureDetector(
-          onTap: () {
-            // TODO: Navigate to signup screen.
-          },
-          child: Text(
-            'Sign up',
-            style: AppTextStyles.signupAction,
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildSignup(BuildContext context) {
+  //   return Wrap(
+  //     alignment: WrapAlignment.center,
+  //     children: [
+  //       Text(
+  //         'New to Patgolito? ',
+  //         style: AppTextStyles.signupText,
+  //       ),
+  //       GestureDetector(
+  //         onTap: () {
+  //           // TODO: Navigate to signup screen.
+  //         },
+  //         child: Text(
+  //           'Sign up',
+  //           style: AppTextStyles.signupAction,
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   // ===================================================================
   // TERMS
@@ -344,6 +362,98 @@ _buildTruckImage(
 // PHONE INPUT
 // =======================================================================
 
+// class _PhoneInput extends StatelessWidget {
+//   const _PhoneInput();
+
+//   @override
+//   Widget build(BuildContext context) {
+//     final LoginViewModel viewModel =
+//         context.read<LoginViewModel>();
+
+//     return Container(
+//       height: 64,
+//       decoration: BoxDecoration(
+//         color: AppColors.white,
+//         borderRadius: BorderRadius.circular(
+//   AppSpacing.radiusCircular,
+// ),
+//         border: Border.all(
+//           color: AppColors.primary.withValues(
+//             alpha: 0.35,
+//           ),
+//           width: 1.3,
+//         ),
+//       ),
+//       child: Row(
+//         children: [
+//           // ===========================================================
+//           // COUNTRY CODE
+//           // ===========================================================
+
+//           Padding(
+//             padding: const EdgeInsets.only(
+//               left: AppSpacing.lg,
+//               right: AppSpacing.md,
+//             ),
+//             child: Row(
+//               children: [
+//                 Text(
+//                   '+91',
+//                   style: AppTextStyles.countryCode,
+//                 ),
+
+//                 const SizedBox(
+//                   width: AppSpacing.sm,
+//                 ),
+
+//                 Icon(
+//                   Icons.keyboard_arrow_down_rounded,
+//                   size: 24,
+//                   color: AppColors.textPrimary,
+//                 ),
+//               ],
+//             ),
+//           ),
+
+//           // ===========================================================
+//           // DIVIDER
+//           // ===========================================================
+
+//           Container(
+//             width: 1,
+//             height: 34,
+//             color: AppColors.primary.withValues(
+//               alpha: 0.25,
+//             ),
+//           ),
+
+//           // ===========================================================
+//           // PHONE NUMBER
+//           // ===========================================================
+
+//           Expanded(
+//             child: TextField(
+//               controller: viewModel.phoneController,
+//               keyboardType: TextInputType.phone,
+//               maxLength: 10,
+//               onChanged: viewModel.onPhoneChanged,
+//               style: AppTextStyles.phoneInput,
+//               decoration: const InputDecoration(
+//                 counterText: '',
+//                 hintText: '10-digit number',
+//                 border: InputBorder.none,
+//                 contentPadding: EdgeInsets.symmetric(
+//                   horizontal: AppSpacing.lg,
+//                 ),
+//               ),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
+
 class _PhoneInput extends StatelessWidget {
   const _PhoneInput();
 
@@ -352,87 +462,126 @@ class _PhoneInput extends StatelessWidget {
     final LoginViewModel viewModel =
         context.read<LoginViewModel>();
 
-    return Container(
-      height: 64,
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.primary.withValues(
-            alpha: 0.35,
-          ),
-          width: 1.3,
-        ),
-      ),
-      child: Row(
-        children: [
-          // ===========================================================
-          // COUNTRY CODE
-          // ===========================================================
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          color: AppColors.white,
 
-          Padding(
-            padding: const EdgeInsets.only(
-              left: AppSpacing.lg,
-              right: AppSpacing.md,
-            ),
-            child: Row(
-              children: [
-                Text(
-                  '+91',
-                  style: AppTextStyles.countryCode,
-                ),
+          borderRadius: BorderRadius.circular(32),
 
-                const SizedBox(
-                  width: AppSpacing.sm,
-                ),
-
-                Icon(
-                  Icons.keyboard_arrow_down_rounded,
-                  size: 24,
-                  color: AppColors.textPrimary,
-                ),
-              ],
-            ),
-          ),
-
-          // ===========================================================
-          // DIVIDER
-          // ===========================================================
-
-          Container(
-            width: 1,
-            height: 34,
+          border: Border.all(
             color: AppColors.primary.withValues(
-              alpha: 0.25,
+              alpha: 0.35,
             ),
+            width: 1.3,
           ),
+        ),
+        child: Row(
+          children: [
+            // =========================================
+            // COUNTRY CODE
+            // =========================================
 
-          // ===========================================================
-          // PHONE NUMBER
-          // ===========================================================
+            Padding(
+              padding: const EdgeInsets.only(
+                left: AppSpacing.xl,
+                right: AppSpacing.md,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    '+91',
+                    style: AppTextStyles.countryCode,
+                  ),
 
-          Expanded(
-            child: TextField(
-              controller: viewModel.phoneController,
-              keyboardType: TextInputType.phone,
-              maxLength: 10,
-              onChanged: viewModel.onPhoneChanged,
-              style: AppTextStyles.phoneInput,
-              decoration: const InputDecoration(
-                counterText: '',
-                hintText: '10-digit number',
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: AppSpacing.lg,
+                  const SizedBox(
+                    width: AppSpacing.xs,
+                  ),
+
+                  const Icon(
+                    Icons.keyboard_arrow_down_rounded,
+                    size: 22,
+                    color: AppColors.textPrimary,
+                  ),
+                ],
+              ),
+            ),
+
+            // =========================================
+            // DIVIDER
+            // =========================================
+
+            Container(
+              width: 1,
+              height: 30,
+              color: AppColors.border,
+            ),
+
+            // =========================================
+            // PHONE FIELD
+            // =========================================
+
+            Expanded(
+              child: TextField(
+                controller:
+                    viewModel.phoneController,
+
+                keyboardType:
+                    TextInputType.phone,
+
+                maxLength: 10,
+
+                onChanged:
+                    viewModel.onPhoneChanged,
+
+                style:
+                    AppTextStyles.phoneInput,
+
+                textAlignVertical:
+                    TextAlignVertical.center,
+
+                decoration:
+                    const InputDecoration(
+                  counterText: '',
+
+                  hintText:
+                      '10-digit number',
+
+                  // Very important
+                  border:
+                      InputBorder.none,
+                  enabledBorder:
+                      InputBorder.none,
+                  focusedBorder:
+                      InputBorder.none,
+
+                  filled: false,
+
+                  isDense: true,
+
+                  contentPadding:
+                      EdgeInsets.symmetric(
+                    horizontal:
+                        AppSpacing.lg,
+                    vertical: 20,
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+
+            const SizedBox(
+              width: AppSpacing.sm,
+            ),
+          ],
+        ),
       ),
     );
   }
 }
+
 
 // =======================================================================
 // CONTINUE BUTTON

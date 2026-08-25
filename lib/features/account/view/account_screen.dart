@@ -136,26 +136,26 @@ class _AccountScreenState
         // SMALL PROFILE AVATAR
         // =========================================
 
-        Container(
-          width: 54,
-          height: 54,
+        // Container(
+        //   width: 54,
+        //   height: 54,
 
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
+        //   decoration: BoxDecoration(
+        //     shape: BoxShape.circle,
 
-            color: AppColors.surface,
+        //     color: AppColors.surface,
 
-            border: Border.all(
-              color: AppColors.border,
-            ),
-          ),
+        //     border: Border.all(
+        //       color: AppColors.border,
+        //     ),
+        //   ),
 
-          child: const Icon(
-            Icons.person_rounded,
-            color: AppColors.textSecondary,
-            size: AppSpacing.iconLarge,
-          ),
-        ),
+        //   child: const Icon(
+        //     Icons.person_rounded,
+        //     color: AppColors.textSecondary,
+        //     size: AppSpacing.iconLarge,
+        //   ),
+        // ),
       ],
     );
   }
@@ -179,9 +179,9 @@ class _AccountScreenState
           AppSpacing.radiusCard,
         ),
 
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        // border: Border.all(
+        //   color: AppColors.border,
+        // ),
       ),
 
       child: Row(
@@ -267,9 +267,9 @@ class _AccountScreenState
           AppSpacing.radiusCard,
         ),
 
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        // border: Border.all(
+        //   color: AppColors.border,
+        // ),
       ),
 
       child: Column(
