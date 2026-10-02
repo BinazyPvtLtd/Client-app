@@ -265,8 +265,8 @@ AnimatedDeliveryScene(
 Widget _buildAppIcon() {
   return Image.asset(
     AppAssets.patgolitoLogo1,
-    width: 170,
-    height: 120,
+    width: 230,
+    height: 150,
     fit: BoxFit.contain,
   );
 }

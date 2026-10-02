@@ -154,7 +154,8 @@ class _PickupDropCard extends StatelessWidget {
                   alignment: Alignment.center,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    color: AppColors.success,
+                    // color: AppColors.success,
+                     color: Color.fromARGB(255, 222, 13, 13),
                   ),
                   child: const Icon(
                     Icons.arrow_upward_rounded,
@@ -218,7 +219,7 @@ class _PickupDropCard extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: const BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.error,
+                  color: Color.fromARGB(255, 17, 189, 25),
                 ),
                 child: const Icon(
                   Icons.arrow_downward_rounded,
@@ -317,7 +318,8 @@ class _QuickActionsRow extends StatelessWidget {
                   Icon(
                     Icons.location_on_outlined,
                     size: AppSpacing.iconSmall,
-                    color: AppColors.primary,
+                    // color: AppColors.primary,
+                     color: Color.fromARGB(255, 17, 189, 25),
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(

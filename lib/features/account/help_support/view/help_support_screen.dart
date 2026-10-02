@@ -3,9 +3,6 @@ import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
 import 'package:client_app/core/theme/app_typography.dart';
 import 'package:flutter/material.dart';
-
-
-
 import '../model/support_category_model.dart';
 import '../viewmodel/help_support_viewmodel.dart';
 
@@ -13,6 +10,7 @@ class HelpSupportScreen extends StatefulWidget {
   const HelpSupportScreen({
     super.key,
   });
+
 
   @override
   State<HelpSupportScreen> createState() =>
@@ -100,9 +98,7 @@ class _HelpSupportScreenState
                     CrossAxisAlignment.start,
 
                 children: [
-                  // =========================================
-                  // SEARCH
-                  // =========================================
+                  
 
                   _buildSearchField(),
 
@@ -111,9 +107,7 @@ class _HelpSupportScreenState
                         AppSpacing.xxxl,
                   ),
 
-                  // =========================================
-                  // CATEGORIES TITLE
-                  // =========================================
+                  
 
                   Text(
                     'Categories',
@@ -131,10 +125,7 @@ class _HelpSupportScreenState
                         AppSpacing.xl,
                   ),
 
-                  // =========================================
-                  // CATEGORIES
-                  // =========================================
-
+                  
                   _buildCategories(),
 
                   const SizedBox(
@@ -149,9 +140,7 @@ class _HelpSupportScreenState
                         AppSpacing.xxl,
                   ),
 
-                  // =========================================
-                  // CONTACT US
-                  // =========================================
+                  
 
                   Text(
                     'Contact Us',
@@ -276,9 +265,7 @@ class _HelpSupportScreenState
     );
   }
 
-  // =========================================================
-  // CATEGORIES
-  // =========================================================
+  
 
   Widget _buildCategories() {
     final categories =
@@ -364,8 +351,7 @@ class _HelpSupportScreenState
   Widget _buildContactActions() {
     return Column(
       children: [
-        // CHAT SUPPORT
-
+        
         SizedBox(
           width:
               double.infinity,
@@ -405,8 +391,7 @@ class _HelpSupportScreenState
           height:
               AppSpacing.md,
         ),
-
-        // CALL SUPPORT
+        
 
         SizedBox(
           width:
@@ -437,7 +422,7 @@ class _HelpSupportScreenState
                     AppSpacing
                         .borderMedium,
               ),
-
+              
               shape:
                   RoundedRectangleBorder(
                 borderRadius:

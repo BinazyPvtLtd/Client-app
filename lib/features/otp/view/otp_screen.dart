@@ -278,10 +278,10 @@ class _OtpViewState extends State<_OtpView> {
 
   Widget _buildLogo() {
     return SizedBox(
-      width: 150,
+      width: 230,
       height: 150,
       child: Image.asset(
-        AppAssets.patgolitoLogo,
+        AppAssets.patgolitoLogo1,
         fit: BoxFit.contain,
       ),
     );
