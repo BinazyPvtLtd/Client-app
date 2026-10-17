@@ -1,7 +1,6 @@
 import 'package:client_app/features/select_vehicle/view/select_vehicle_screen.dart';
 import 'package:flutter/material.dart';
 
-
 class DropLocationViewModel extends ChangeNotifier {
   DropLocationViewModel({
     required this.addressTitle,
@@ -22,14 +21,11 @@ class DropLocationViewModel extends ChangeNotifier {
   // RECEIVER FORM
   // =========================================================
 
-  final TextEditingController houseController =
-      TextEditingController();
+  final TextEditingController houseController = TextEditingController();
 
-  final TextEditingController nameController =
-      TextEditingController();
+  final TextEditingController nameController = TextEditingController();
 
-  final TextEditingController phoneController =
-      TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
 
   bool useMyMobileNumber = false;
 

@@ -6,10 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 class FareBreakupBottomSheet extends StatelessWidget {
   final FareBreakupModel fare;
 
-  const FareBreakupBottomSheet({
-    super.key,
-    required this.fare,
-  });
+  const FareBreakupBottomSheet({super.key, required this.fare});
 
   static Future<void> show(
     BuildContext context, {
@@ -21,9 +18,7 @@ class FareBreakupBottomSheet extends StatelessWidget {
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withOpacity(0.30),
       builder: (_) {
-        return FareBreakupBottomSheet(
-          fare: fare,
-        );
+        return FareBreakupBottomSheet(fare: fare);
       },
     );
   }
@@ -48,17 +43,10 @@ class FareBreakupBottomSheet extends StatelessWidget {
         ),
         decoration: const BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.vertical(
-            top: Radius.circular(30),
-          ),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
         ),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            36,
-            14,
-            36,
-            24,
-          ),
+          padding: const EdgeInsets.fromLTRB(36, 14, 36, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -100,49 +88,34 @@ class FareBreakupBottomSheet extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 48),
+              const SizedBox(height: 14),
 
               _FareRow(
                 title: 'Trip Fare',
                 amount: _formatAmount(fare.tripFare),
               ),
 
-              const SizedBox(height: 32),
-
               _FareRow(
                 title: 'Distance Charge',
                 amount: _formatAmount(fare.distanceCharge),
               ),
 
-              const SizedBox(height: 32),
-
               _FareRow(
                 title: 'Loading/Unloading',
                 amount: fare.loadingUnloadingCharge == 0
                     ? 'Free'
-                    : _formatAmount(
-                        fare.loadingUnloadingCharge,
-                      ),
+                    : _formatAmount(fare.loadingUnloadingCharge),
                 amountColor: fare.loadingUnloadingCharge == 0
                     ? AppColors.primary
                     : null,
               ),
-
-              const SizedBox(height: 32),
 
               _FareRow(
                 title: 'Platform Fee',
                 amount: _formatAmount(fare.platformFee),
               ),
 
-              const SizedBox(height: 32),
-
-              _FareRow(
-                title: 'Taxes',
-                amount: _formatAmount(fare.taxes),
-              ),
-
-              const SizedBox(height: 32),
+              _FareRow(title: 'Taxes', amount: _formatAmount(fare.taxes)),
 
               _FareRow(
                 title: 'Discount (2W15OFF)',
@@ -151,21 +124,14 @@ class FareBreakupBottomSheet extends StatelessWidget {
                 amountColor: AppColors.primary,
               ),
 
-              const SizedBox(height: 18),
-
-              Divider(
-                color: const Color(0xFFD8C7BA),
-                thickness: 1.5,
-              ),
-
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
 
               // Amount payable
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 28,
-                  vertical: 24,
+                  horizontal: 24,
+                  vertical: 15,
                 ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFBF3EC),
@@ -215,9 +181,8 @@ class FareBreakupBottomSheet extends StatelessWidget {
                       'Final amount may vary based on actual wait '
                       'time or route changes.',
                       style: theme.textTheme.bodyLarge?.copyWith(
-                        height: 1.5,
+                        height: 1.2,
                         color: const Color(0xFF4E433D),
-                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -242,10 +207,7 @@ class FareBreakupBottomSheet extends StatelessWidget {
                   ),
                   child: const Text(
                     'Done',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
                   ),
                 ),
               ),
@@ -274,27 +236,35 @@ class _FareRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
+    return Column(
       children: [
-        Expanded(
-          child: Text(
-            title,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: titleColor ?? const Color(0xFF51453E),
-            ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: titleColor ?? AppColors.textSecondary,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                amount,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: amountColor ?? AppColors.textPrimary,
+                ),
+              ),
+            ],
           ),
         ),
-        Text(
-          amount,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-            color: amountColor ?? const Color(0xFF202020),
-          ),
-        ),
+        const Divider(height: 1, thickness: 0.6, color: AppColors.border),
       ],
     );
   }

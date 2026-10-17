@@ -3,8 +3,6 @@ import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
-
-
 class PaymentMethodSheet extends StatefulWidget {
   final String selectedMethod;
   final double amount;
@@ -18,12 +16,19 @@ class PaymentMethodSheet extends StatefulWidget {
   });
 
   @override
-  State<PaymentMethodSheet> createState() =>
-      _PaymentMethodSheetState();
+  State<PaymentMethodSheet> createState() => _PaymentMethodSheetState();
 }
 
-class _PaymentMethodSheetState
-    extends State<PaymentMethodSheet> {
+List<BoxShadow> get _cardShadow => [
+  BoxShadow(
+    color: AppColors.black.withValues(alpha: 0.12),
+    blurRadius: 16,
+    spreadRadius: 0,
+    offset: const Offset(0, 5),
+  ),
+];
+
+class _PaymentMethodSheetState extends State<PaymentMethodSheet> {
   late String _selectedMethod;
 
   @override
@@ -40,9 +45,7 @@ class _PaymentMethodSheetState
 
       decoration: const BoxDecoration(
         color: AppColors.white,
-        borderRadius: BorderRadius.vertical(
-          top: Radius.circular(28),
-        ),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
 
       child: SafeArea(
@@ -61,32 +64,26 @@ class _PaymentMethodSheetState
               // =============================================
               // DRAG HANDLE
               // =============================================
-
               Container(
                 width: 55,
                 height: 5,
                 decoration: BoxDecoration(
                   color: AppColors.border,
-                  borderRadius:
-                      BorderRadius.circular(100),
+                  borderRadius: BorderRadius.circular(100),
                 ),
               ),
 
-              const SizedBox(
-                height: AppSpacing.xxl,
-              ),
+              const SizedBox(height: AppSpacing.xxl),
 
               // =============================================
               // HEADER
               // =============================================
-
               Row(
                 children: [
                   Expanded(
                     child: Text(
                       'Choose Payment\nMethod',
-                      style:
-                          AppTextStyles.heading1.copyWith(
+                      style: AppTextStyles.heading1.copyWith(
                         color: AppColors.black,
                         fontWeight: FontWeight.w700,
                       ),
@@ -105,82 +102,52 @@ class _PaymentMethodSheetState
                 ],
               ),
 
-              const SizedBox(
-                height: AppSpacing.xxl,
-              ),
+              const SizedBox(height: AppSpacing.xxl),
 
               // =============================================
               // CASH
               // =============================================
-
               _buildPaymentOption(
                 icon: Icons.payments_outlined,
                 title: 'Cash',
-                subtitle:
-                    'Pay the captain after delivery',
+                subtitle: 'Pay the captain after delivery',
               ),
 
-              const SizedBox(
-                height: AppSpacing.md,
-              ),
+              const SizedBox(height: AppSpacing.md),
 
               // =============================================
               // UPI
               // =============================================
-
               _buildPaymentOption(
                 icon: Icons.qr_code_rounded,
                 title: 'UPI',
                 subtitle: 'Pay securely using UPI',
               ),
 
-              const SizedBox(
-                height: AppSpacing.md,
-              ),
-
-              // =============================================
-              // CARD
-              // =============================================
-
-              _buildPaymentOption(
-                icon: Icons.credit_card_rounded,
-                title: 'Card',
-                subtitle: 'Credit / Debit Card',
-              ),
-
-              const SizedBox(
-                height: AppSpacing.xxxl,
-              ),
+              const SizedBox(height: AppSpacing.md),
 
               const Divider(),
 
-              const SizedBox(
-                height: AppSpacing.xl,
-              ),
+              const SizedBox(height: AppSpacing.md),
 
               // =============================================
               // AMOUNT
               // =============================================
-
               Row(
-                crossAxisAlignment:
-                    CrossAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Expanded(
                     child: Text(
                       'Amount\nPayable',
-                      style:
-                          AppTextStyles.bodyLarge.copyWith(
-                        color:
-                            AppColors.textSecondary,
+                      style: AppTextStyles.bodyLarge.copyWith(
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   ),
 
                   Text(
                     '₹${widget.amount.toInt()}',
-                    style:
-                        AppTextStyles.heading1.copyWith(
+                    style: AppTextStyles.heading1.copyWith(
                       color: AppColors.black,
                       fontWeight: FontWeight.w700,
                     ),
@@ -188,33 +155,25 @@ class _PaymentMethodSheetState
                 ],
               ),
 
-              const SizedBox(
-                height: AppSpacing.xl,
-              ),
+              const SizedBox(height: AppSpacing.xl),
 
               // =============================================
               // CONFIRM BUTTON
               // =============================================
-
               SizedBox(
                 width: double.infinity,
                 height: AppSpacing.buttonHeight,
                 child: ElevatedButton(
                   onPressed: () {
-                    widget.onSelected(
-                      _selectedMethod,
-                    );
+                    widget.onSelected(_selectedMethod);
                   },
 
                   style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        AppColors.black,
-                    foregroundColor:
-                        AppColors.white,
+                    backgroundColor: AppColors.black,
+                    foregroundColor: AppColors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius:
-                          BorderRadius.circular(
+                      borderRadius: BorderRadius.circular(
                         AppSpacing.radiusCircular,
                       ),
                     ),
@@ -222,8 +181,7 @@ class _PaymentMethodSheetState
 
                   child: Text(
                     'Confirm',
-                    style:
-                        AppTextStyles.buttonText.copyWith(
+                    style: AppTextStyles.buttonText.copyWith(
                       color: AppColors.white,
                     ),
                   ),
@@ -245,8 +203,7 @@ class _PaymentMethodSheetState
     required String title,
     required String subtitle,
   }) {
-    final bool selected =
-        _selectedMethod == title;
+    final bool selected = _selectedMethod == title;
 
     return InkWell(
       onTap: () {
@@ -255,31 +212,27 @@ class _PaymentMethodSheetState
         });
       },
 
-      borderRadius: BorderRadius.circular(
-        AppSpacing.radiusCard,
-      ),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
 
       child: Container(
         width: double.infinity,
 
-        padding: const EdgeInsets.all(
-          AppSpacing.xl,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
         ),
 
         decoration: BoxDecoration(
           color: AppColors.white,
 
-          borderRadius: BorderRadius.circular(
-            AppSpacing.radiusCard,
-          ),
+          borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
 
           border: Border.all(
-            color: selected
-                ? AppColors.black
-                : AppColors.border,
+            color: selected ? AppColors.black : AppColors.border,
 
             width: selected ? 2 : 1,
           ),
+          boxShadow: _cardShadow,
         ),
 
         child: Row(
@@ -287,10 +240,9 @@ class _PaymentMethodSheetState
             // =============================================
             // ICON
             // =============================================
-
             Container(
-              width: 52,
-              height: 52,
+              width: 42,
+              height: 42,
 
               decoration: BoxDecoration(
                 color: AppColors.background,
@@ -304,52 +256,40 @@ class _PaymentMethodSheetState
               ),
             ),
 
-            const SizedBox(
-              width: AppSpacing.lg,
-            ),
+            const SizedBox(width: AppSpacing.lg),
 
             // =============================================
             // TEXT
             // =============================================
-
             Expanded(
               child: Column(
-                crossAxisAlignment:
-                    CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style:
-                        AppTextStyles.heading3.copyWith(
+                    style: AppTextStyles.heading3.copyWith(
                       color: AppColors.black,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
 
-                  const SizedBox(
-                    height: AppSpacing.xs,
-                  ),
+                  const SizedBox(height: AppSpacing.xs),
 
                   Text(
                     subtitle,
-                    style:
-                        AppTextStyles.bodyMedium.copyWith(
-                      color:
-                          AppColors.textSecondary,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: AppColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
 
-            const SizedBox(
-              width: AppSpacing.md,
-            ),
+            const SizedBox(width: AppSpacing.md),
 
             // =============================================
             // RADIO
             // =============================================
-
             Container(
               width: 24,
               height: 24,
@@ -358,24 +298,17 @@ class _PaymentMethodSheetState
                 shape: BoxShape.circle,
 
                 border: Border.all(
-                  color: selected
-                      ? AppColors.black
-                      : AppColors.border,
+                  color: selected ? AppColors.black : AppColors.border,
 
                   width: 2,
                 ),
 
-                color: selected
-                    ? AppColors.black
-                    : AppColors.white,
+                color: selected ? AppColors.black : AppColors.white,
+                boxShadow: _cardShadow,
               ),
 
               child: selected
-                  ? const Icon(
-                      Icons.circle,
-                      size: 9,
-                      color: AppColors.white,
-                    )
+                  ? const Icon(Icons.circle, size: 9, color: AppColors.white)
                   : null,
             ),
           ],

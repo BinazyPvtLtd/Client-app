@@ -2,6 +2,7 @@ import 'package:client_app/core/constant/app_assets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
@@ -20,12 +21,8 @@ class OtpScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => OtpViewModel(
-        verificationId: verificationId,
-      ),
-      child: _OtpView(
-        phoneNumber: phoneNumber,
-      ),
+      create: (_) => OtpViewModel(verificationId: verificationId),
+      child: _OtpView(phoneNumber: phoneNumber),
     );
   }
 }
@@ -33,9 +30,7 @@ class OtpScreen extends StatelessWidget {
 class _OtpView extends StatefulWidget {
   final String phoneNumber;
 
-  const _OtpView({
-    required this.phoneNumber,
-  });
+  const _OtpView({required this.phoneNumber});
 
   @override
   State<_OtpView> createState() => _OtpViewState();
@@ -43,29 +38,15 @@ class _OtpView extends StatefulWidget {
 
 class _OtpViewState extends State<_OtpView> {
   late final List<TextEditingController> _controllers;
-
   late final List<FocusNode> _focusNodes;
-
-  late final List<FocusNode> _keyboardFocusNodes;
 
   @override
   void initState() {
     super.initState();
 
-    _controllers = List.generate(
-      6,
-      (_) => TextEditingController(),
-    );
+    _controllers = List.generate(6, (_) => TextEditingController());
 
-    _focusNodes = List.generate(
-      6,
-      (_) => FocusNode(),
-    );
-
-    _keyboardFocusNodes = List.generate(
-      6,
-      (_) => FocusNode(),
-    );
+    _focusNodes = List.generate(6, (_) => FocusNode());
   }
 
   @override
@@ -74,12 +55,8 @@ class _OtpViewState extends State<_OtpView> {
       controller.dispose();
     }
 
-    for (final focusNode in _focusNodes) {
-      focusNode.dispose();
-    }
-
-    for (final focusNode in _keyboardFocusNodes) {
-      focusNode.dispose();
+    for (final node in _focusNodes) {
+      node.dispose();
     }
 
     super.dispose();
@@ -89,40 +66,12 @@ class _OtpViewState extends State<_OtpView> {
   // OTP INPUT
   // =========================================================
 
-  void _onOtpChanged(
-    String value,
-    int index,
-  ) {
-    if (value.length == 1 && index < 5) {
+  void _onOtpChanged(String value, int index) {
+    if (value.isNotEmpty && index < 5) {
       _focusNodes[index + 1].requestFocus();
     }
 
-    _updateOtp();
-  }
-
-  void _handleKeyEvent(
-    int index,
-    KeyEvent event,
-  ) {
-    if (event is KeyDownEvent &&
-        event.logicalKey ==
-            LogicalKeyboardKey.backspace &&
-        _controllers[index].text.isEmpty &&
-        index > 0) {
-      _controllers[index - 1].clear();
-
-      _focusNodes[index - 1].requestFocus();
-
-      _updateOtp();
-    }
-  }
-
-  void _updateOtp() {
-    final otp = _controllers
-        .map(
-          (controller) => controller.text,
-        )
-        .join();
+    final otp = _controllers.map((controller) => controller.text).join();
 
     context.read<OtpViewModel>().setOtp(otp);
   }
@@ -132,12 +81,15 @@ class _OtpViewState extends State<_OtpView> {
   // =========================================================
 
   void _verifyOtp() {
+    final viewModel = context.read<OtpViewModel>();
+
+    if (viewModel.isLoading || viewModel.otp.length != 6) {
+      return;
+    }
+
     FocusScope.of(context).unfocus();
 
-    context.read<OtpViewModel>().verifyOtp(
-          context,
-          phoneNumber: widget.phoneNumber,
-        );
+    viewModel.verifyOtp(context, phoneNumber: widget.phoneNumber);
   }
 
   // =========================================================
@@ -145,10 +97,21 @@ class _OtpViewState extends State<_OtpView> {
   // =========================================================
 
   void _resendOtp() {
-    context.read<OtpViewModel>().resendOtp(
-          context,
-          phoneNumber: widget.phoneNumber,
-        );
+    final viewModel = context.read<OtpViewModel>();
+
+    if (viewModel.isLoading || !viewModel.canResend) {
+      return;
+    }
+
+    FocusScope.of(context).unfocus();
+
+    for (final controller in _controllers) {
+      controller.clear();
+    }
+
+    viewModel.setOtp('');
+
+    viewModel.resendOtp(context, phoneNumber: widget.phoneNumber);
   }
 
   // =========================================================
@@ -156,359 +119,217 @@ class _OtpViewState extends State<_OtpView> {
   // =========================================================
 
   void _changeNumber() {
-    Navigator.pop(context);
+    FocusScope.of(context).unfocus();
+    Navigator.of(context).pop();
   }
 
   // =========================================================
-  // BUILD
+  // MAIN SCREEN - FIXED LAYOUT
   // =========================================================
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final screenHeight = MediaQuery.sizeOf(context).height;
+
+    final horizontalPadding = screenWidth < 360 ? 16.0 : 24.0;
+    final compact = screenHeight < 700;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: true,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (
-            context,
-            constraints,
-          ) {
-            return SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              padding: EdgeInsets.symmetric(
-                horizontal: AppSpacing.xxl,
-                vertical: AppSpacing.xl,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: Column(
-                  children: [
-                    // =================================================
-                    // TOP SPACE
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.huge,
-                    ),
-
-                    // =================================================
-                    // LOGO
-                    // =================================================
-
-                    _buildLogo(),
-
-                    // =================================================
-                    // TITLE
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.xxxl,
-                    ),
-
-                    _buildTitle(),
-
-                    // =================================================
-                    // SUBTITLE
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.sm,
-                    ),
-
-                    _buildSubtitle(),
-
-                    // =================================================
-                    // OTP
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.xxxl,
-                    ),
-
-                    _buildOtpFields(),
-
-                    // =================================================
-                    // VERIFY
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.xxxl,
-                    ),
-
-                    _buildVerifyButton(),
-
-                    // =================================================
-                    // RESEND
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-
-                    _buildResend(),
-
-                    // =================================================
-                    // CHANGE NUMBER
-                    // =================================================
-
-                    SizedBox(
-                      height: AppSpacing.lg,
-                    ),
-
-                    _buildChangeNumber(),
-
-                    SizedBox(
-                      height: AppSpacing.xl,
-                    ),
-                  ],
+        child: SingleChildScrollView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: compact ? 28 : 48,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: compact ? 95 : 110,
+                  width: double.infinity,
+                  child: Image.asset(
+                    AppAssets.patgolitoLogo1,
+                    fit: BoxFit.contain,
+                  ),
                 ),
-              ),
-            );
-          },
+
+                const SizedBox(height: 24),
+
+                Text(
+                  'Verify your number',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.loginTitle.copyWith(
+                    fontSize: 24,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  'Enter the 6-digit code sent to',
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.loginSubtitle.copyWith(fontSize: 14),
+                ),
+
+                const SizedBox(height: 4),
+
+                Text(
+                  widget.phoneNumber,
+                  textAlign: TextAlign.center,
+                  style: AppTextStyles.countryCode.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                const SizedBox(height: 32),
+
+                _buildOtpFields(),
+
+                const SizedBox(height: 32),
+
+                _buildVerifyButton(),
+
+                const SizedBox(height: 20),
+
+                _buildResend(),
+
+                const SizedBox(height: 12),
+
+                _buildChangeNumber(),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
   // =========================================================
-  // LOGO
-  // =========================================================
-
-  Widget _buildLogo() {
-    return SizedBox(
-      width: 230,
-      height: 150,
-      child: Image.asset(
-        AppAssets.patgolitoLogo1,
-        fit: BoxFit.contain,
-      ),
-    );
-  }
-
-  // =========================================================
-  // TITLE
-  // =========================================================
-
-  Widget _buildTitle() {
-    return Text(
-      'Verify your number',
-      textAlign: TextAlign.center,
-      style: AppTextStyles.loginTitle,
-    );
-  }
-
-  // =========================================================
-  // SUBTITLE
-  // =========================================================
-
-  Widget _buildSubtitle() {
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(
-        style: AppTextStyles.loginSubtitle,
-        children: [
-          const TextSpan(
-            text: 'Enter the 6-digit code sent to\n',
-          ),
-          TextSpan(
-            text: widget.phoneNumber,
-            style: AppTextStyles.countryCode,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // =========================================================
-  // OTP FIELDS
+  // RESPONSIVE OTP BOXES
   // =========================================================
 
   Widget _buildOtpFields() {
     return LayoutBuilder(
-      builder: (
-        context,
-        constraints,
-      ) {
-        const double spacing = 12;
+      builder: (context, constraints) {
+        const gap = 8.0;
+        final available = constraints.maxWidth;
 
-        final availableWidth =
-            constraints.maxWidth -
-            (spacing * 5);
-
-        final fieldWidth =
-            (availableWidth / 6).clamp(
-          45.0,
-          62.0,
-        );
+        final fieldWidth = ((available - gap * 5) / 6)
+            .clamp(0.0, 48.0)
+            .toDouble();
 
         return Row(
-          mainAxisAlignment:
-              MainAxisAlignment.spaceBetween,
-          children: List.generate(
-            6,
-            (index) {
-              return _buildOtpField(
-                index,
-                fieldWidth,
-              );
-            },
-          ),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(6, (index) {
+            return Padding(
+              padding: EdgeInsets.only(right: index == 5 ? 0 : gap),
+              child: _buildOtpField(index, fieldWidth),
+            );
+          }),
         );
       },
     );
   }
-
   // =========================================================
-  // SINGLE OTP FIELD
+  // SINGLE OTP BOX
   // =========================================================
 
-  Widget _buildOtpField(
-  int index,
-  double width,
-) {
-  return SizedBox(
-    width: width,
-    height: 58, // compact + balanced
-    child: KeyboardListener(
-      focusNode: _keyboardFocusNodes[index],
-      onKeyEvent: (event) {
-        _handleKeyEvent(
-          index,
-          event,
-        );
-      },
+  Widget _buildOtpField(int index, double width) {
+    return SizedBox(
+      width: width,
+      height: 54,
       child: TextField(
         controller: _controllers[index],
         focusNode: _focusNodes[index],
-
         keyboardType: TextInputType.number,
         textInputAction: index == 5
             ? TextInputAction.done
             : TextInputAction.next,
-
         textAlign: TextAlign.center,
+        textAlignVertical: TextAlignVertical.center,
         maxLength: 1,
-
         inputFormatters: [
           FilteringTextInputFormatter.digitsOnly,
+          LengthLimitingTextInputFormatter(1),
         ],
-
-        style: AppTextStyles.heading2.copyWith(
+        style: AppTextStyles.otpDigit.copyWith(
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
-
         decoration: InputDecoration(
           counterText: '',
-
+          isDense: false,
           filled: true,
           fillColor: AppColors.white,
-
           contentPadding: EdgeInsets.zero,
-
-          // ==========================================
-          // NORMAL BORDER
-          // ==========================================
-
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(
-              color: AppColors.border,
-              width: 1.2,
-            ),
-          ),
-
-          // ==========================================
-          // FOCUSED BORDER
-          // ==========================================
-
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(
-              color: AppColors.primary,
-              width: 1.8,
-            ),
-          ),
-
-          // ==========================================
-          // DEFAULT BORDER
-          // ==========================================
-
+          constraints: const BoxConstraints(minHeight: 54, maxHeight: 54),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: BorderSide(
-              color: AppColors.border,
-            ),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.border),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
         ),
-
         onChanged: (value) {
-          _onOtpChanged(
-            value,
-            index,
-          );
+          _onOtpChanged(value, index);
         },
-
         onSubmitted: (_) {
-          if (index == 5) {
-            _verifyOtp();
-          }
+          if (index == 5) _verifyOtp();
         },
       ),
-    ),
-  );
-}
+    );
+  }
   // =========================================================
   // VERIFY BUTTON
   // =========================================================
 
   Widget _buildVerifyButton() {
     return Consumer<OtpViewModel>(
-      builder: (
-        context,
-        viewModel,
-        child,
-      ) {
+      builder: (context, viewModel, child) {
+        final canVerify = viewModel.otp.length == 6 && !viewModel.isLoading;
+
         return SizedBox(
           width: double.infinity,
-          height: 58,
+          height: AppSpacing.buttonHeight,
           child: ElevatedButton(
-            onPressed: viewModel.isLoading
-                ? null
-                : _verifyOtp,
+            onPressed: canVerify ? _verifyOtp : null,
+
             style: ElevatedButton.styleFrom(
-              backgroundColor:
-                  AppColors.primary,
-              disabledBackgroundColor:
-                  AppColors.primary.withValues(
-                alpha: 0.6,
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.white,
+              disabledBackgroundColor: AppColors.primary.withValues(
+                alpha: 0.65,
               ),
-              elevation: 2,
-              shadowColor:
-                  AppColors.primary.withValues(
-                alpha: 0.25,
-              ),
+              disabledForegroundColor: AppColors.white,
+              elevation: 0,
               shape: RoundedRectangleBorder(
-                borderRadius:
-                    BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(AppSpacing.radiusButton),
               ),
             ),
+
             child: viewModel.isLoading
                 ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child:
-                        CircularProgressIndicator(
-                      strokeWidth: 2.5,
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
                       color: AppColors.white,
                     ),
                   )
-                : Text(
-                    'Verify & Continue',
-                    style:
-                        AppTextStyles.buttonText,
-                  ),
+                : Text('Verify & Continue', style: AppTextStyles.buttonText),
           ),
         );
       },
@@ -521,30 +342,28 @@ class _OtpViewState extends State<_OtpView> {
 
   Widget _buildResend() {
     return Consumer<OtpViewModel>(
-      builder: (
-        context,
-        viewModel,
-        child,
-      ) {
-        return Row(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
+      builder: (context, viewModel, child) {
+        final canResend = viewModel.canResend && !viewModel.isLoading;
+
+        return Wrap(
+          alignment: WrapAlignment.center,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 5,
+          runSpacing: 4,
           children: [
-            Text(
-              "Didn't receive the code? ",
-              style:
-                  AppTextStyles.signupText,
-            ),
+            Text("Didn't receive the code?", style: AppTextStyles.signupText),
+
             GestureDetector(
-              onTap: viewModel.canResend
-                  ? _resendOtp
-                  : null,
+              onTap: canResend ? _resendOtp : null,
               child: Text(
                 viewModel.canResend
                     ? 'Resend OTP'
                     : 'Resend in ${viewModel.resendSeconds}s',
-                style:
-                    AppTextStyles.signupAction,
+                style: AppTextStyles.signupAction.copyWith(
+                  color: canResend
+                      ? AppColors.textPrimary
+                      : AppColors.textSecondary,
+                ),
               ),
             ),
           ],
@@ -554,39 +373,25 @@ class _OtpViewState extends State<_OtpView> {
   }
 
   // =========================================================
-  // CHANGE MOBILE NUMBER
+  // CHANGE NUMBER
   // =========================================================
 
   Widget _buildChangeNumber() {
-    return GestureDetector(
-      onTap: _changeNumber,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          vertical: AppSpacing.sm,
-        ),
-        child: Row(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.edit_outlined,
-              size: 22,
-              color:
-                  AppColors.textSecondary,
-            ),
-            SizedBox(
-              width: AppSpacing.sm,
-            ),
-            Text(
-              'Change mobile number',
-              style:
-                  AppTextStyles.heading3.copyWith(
-                color:
-                    AppColors.textSecondary,
-              ),
-            ),
-          ],
+    return TextButton.icon(
+      onPressed: _changeNumber,
+
+      icon: const Icon(
+        Icons.edit_outlined,
+        size: 18,
+        color: AppColors.textSecondary,
+      ),
+
+      label: Text(
+        'Change mobile number',
+        style: AppTextStyles.labelLarge.copyWith(
+          fontSize: 13,
+          color: AppColors.textSecondary,
+          decoration: TextDecoration.underline,
         ),
       ),
     );

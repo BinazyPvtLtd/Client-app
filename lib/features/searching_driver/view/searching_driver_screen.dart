@@ -1,4 +1,5 @@
 import 'package:client_app/features/captain_on_the_way/view/captain_on_the_way_screen.dart';
+import 'package:client_app/features/home/widgets/patgolito_map.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -8,22 +9,27 @@ import '../../../core/theme/app_text_styles.dart';
 import '../viewmodel/searching_driver_viewmodel.dart';
 
 class SearchingDriverScreen extends StatefulWidget {
-  const SearchingDriverScreen({
-    super.key,
-  });
+  const SearchingDriverScreen({super.key});
 
   @override
-  State<SearchingDriverScreen> createState() =>
-      _SearchingDriverScreenState();
+  State<SearchingDriverScreen> createState() => _SearchingDriverScreenState();
 }
 
-class _SearchingDriverScreenState
-    extends State<SearchingDriverScreen>
+class _SearchingDriverScreenState extends State<SearchingDriverScreen>
     with SingleTickerProviderStateMixin {
   late final SearchingDriverViewModel _viewModel;
 
   late final AnimationController _animationController;
   late final Animation<double> _pulseAnimation;
+
+  List<BoxShadow> get _cardShadow => [
+    BoxShadow(
+      color: AppColors.black.withValues(alpha: 0.14),
+      blurRadius: 20,
+      spreadRadius: 0,
+      offset: const Offset(0, 6),
+    ),
+  ];
 
   // =========================================================
   // INIT
@@ -37,24 +43,15 @@ class _SearchingDriverScreenState
 
     _animationController = AnimationController(
       vsync: this,
-      duration: const Duration(
-        milliseconds: 1200,
-      ),
+      duration: const Duration(milliseconds: 2400),
     );
 
-    _pulseAnimation = Tween<double>(
-      begin: 0.88,
-      end: 1.12,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeInOut,
-      ),
+    _pulseAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.linear,
     );
 
-    _animationController.repeat(
-      reverse: true,
-    );
+    _animationController.repeat();
   }
 
   // =========================================================
@@ -81,65 +78,53 @@ class _SearchingDriverScreenState
       body: SafeArea(
         child: ListenableBuilder(
           listenable: _viewModel,
-          builder: (
-            context,
-            _,
-          ) {
+          builder: (context, _) {
             return Stack(
               children: [
                 // =================================================
                 // DUMMY MAP
                 // =================================================
-
                 const Positioned.fill(
-                  child: _SearchingMapBackground(),
+                  child: PatgolitoMap(
+                    latitude: 26.8467,
+                    longitude: 80.9462,
+                    zoom: 15.5,
+                  ),
                 ),
 
                 // =================================================
                 // CONTENT
                 // =================================================
-
                 Positioned.fill(
                   child: Column(
                     children: [
                       _buildTopBar(),
 
-                      const SizedBox(
-                        height: AppSpacing.md,
-                      ),
+                      const SizedBox(height: AppSpacing.md),
 
                       _buildStatus(),
 
-                      const Spacer(),
+                      const SizedBox(height: AppSpacing.md),
 
-                      // =============================================
-                      // SEARCHING CARD
-                      // =============================================
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.screenHorizontal,
+                            AppSpacing.lg,
+                            AppSpacing.screenHorizontal,
+                            AppSpacing.xl,
+                          ),
+                          child: Column(
+                            children: [
+                              _buildSearchingCard(),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.screenHorizontal,
+                              const SizedBox(height: AppSpacing.lg),
+
+                              _buildBookingSummary(),
+                            ],
+                          ),
                         ),
-                        child: _buildSearchingCard(),
-                      ),
-
-                      const SizedBox(
-                        height: AppSpacing.lg,
-                      ),
-
-                      // =============================================
-                      // BOOKING SUMMARY
-                      // =============================================
-
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.screenHorizontal,
-                        ),
-                        child: _buildBookingSummary(),
-                      ),
-
-                      const SizedBox(
-                        height: AppSpacing.lg,
                       ),
                     ],
                   ),
@@ -177,9 +162,7 @@ class _SearchingDriverScreenState
           _CircleButton(
             icon: Icons.info_outline_rounded,
             onTap: () {
-              _viewModel.onInfoPressed(
-                context,
-              );
+              _viewModel.onInfoPressed(context);
             },
           ),
         ],
@@ -198,28 +181,16 @@ class _SearchingDriverScreenState
         vertical: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: AppColors.white.withOpacity(
-          0.94,
-        ),
-        borderRadius: BorderRadius.circular(
-          AppSpacing.radiusCircular,
-        ),
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        color: AppColors.white.withOpacity(0.94),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusCircular),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            'Status: ',
-            style: AppTextStyles.bodySmall,
-          ),
+          Text('Status: ', style: AppTextStyles.bodySmall),
 
-          Text(
-            'Active Search',
-            style: AppTextStyles.labelLarge,
-          ),
+          Text('Active Search', style: AppTextStyles.labelLarge),
         ],
       ),
     );
@@ -243,26 +214,11 @@ class _SearchingDriverScreenState
       decoration: BoxDecoration(
         color: AppColors.white,
 
-        borderRadius: BorderRadius.circular(
-          AppSpacing.radiusCard,
-        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
 
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
 
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.black.withOpacity(
-              AppColors.opacityShadow,
-            ),
-            blurRadius: AppSpacing.shadowBlur,
-            offset: const Offset(
-              0,
-              4,
-            ),
-          ),
-        ],
+        boxShadow: _cardShadow,
       ),
 
       child: Column(
@@ -271,66 +227,37 @@ class _SearchingDriverScreenState
           // =============================================
           // PULSING SEARCH CIRCLE
           // =============================================
+          SizedBox(height: 105, child: Center(child: _buildSearchCircle())),
 
-          SizedBox(
-            height: 105,
-            child: Center(
-              child: AnimatedBuilder(
-                animation: _pulseAnimation,
-                builder: (
-                  context,
-                  child,
-                ) {
-                  return Transform.scale(
-                    scale: _pulseAnimation.value,
-                    child: child,
-                  );
-                },
-                child: _buildSearchCircle(),
-              ),
-            ),
-          ),
-
-          const SizedBox(
-            height: AppSpacing.lg,
-          ),
+          const SizedBox(height: AppSpacing.lg),
 
           // =============================================
           // TITLE
           // =============================================
-
           Text(
             'Searching for drivers',
             textAlign: TextAlign.center,
             style: AppTextStyles.heading1,
           ),
 
-          const SizedBox(
-            height: AppSpacing.sm,
-          ),
+          const SizedBox(height: AppSpacing.sm),
 
           // =============================================
           // SUBTITLE
           // =============================================
-
           Text(
             'Finding the best captain near you.',
             textAlign: TextAlign.center,
             style: AppTextStyles.bodyMedium,
           ),
 
-          const SizedBox(
-            height: AppSpacing.xl,
-          ),
+          const SizedBox(height: AppSpacing.xl),
 
           // =============================================
           // LOADER
           // =============================================
-
           ClipRRect(
-            borderRadius: BorderRadius.circular(
-              AppSpacing.radiusCircular,
-            ),
+            borderRadius: BorderRadius.circular(AppSpacing.radiusCircular),
             child: const LinearProgressIndicator(
               minHeight: 5,
               backgroundColor: AppColors.border,
@@ -350,59 +277,36 @@ class _SearchingDriverScreenState
     return SizedBox(
       width: 92,
       height: 92,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // =============================================
-          // OUTER SOFT CIRCLE
-          // =============================================
-
-          Container(
-            width: 90,
-            height: 90,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary.withOpacity(
-                AppColors.opacityExtraLight,
-              ),
-              border: Border.all(
-                color: AppColors.primary.withOpacity(
-                  AppColors.opacityLight,
+      child: AnimatedBuilder(
+        animation: _pulseAnimation,
+        builder: (context, _) {
+          return CustomPaint(
+            painter: _RadarPainter(progress: _pulseAnimation.value),
+            child: Center(
+              child: Container(
+                width: 66,
+                height: 66,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(0xFFDBEAFE),
+                  border: Border.all(color: const Color(0xFF2563EB), width: 2),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2563EB).withValues(alpha: 0.15),
+                      blurRadius: 12,
+                    ),
+                  ],
+                ),
+                child: const Center(
+                  child: CircleAvatar(
+                    radius: 8,
+                    backgroundColor: Color(0xFF2563EB),
+                  ),
                 ),
               ),
             ),
-          ),
-
-          // =============================================
-          // INNER CIRCLE
-          // =============================================
-
-          Container(
-            width: 66,
-            height: 66,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.white,
-              border: Border.all(
-                color: AppColors.primary,
-                width: AppSpacing.borderMedium,
-              ),
-            ),
-          ),
-
-          // =============================================
-          // CENTER DOT
-          // =============================================
-
-          Container(
-            width: 14,
-            height: 14,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: AppColors.primary,
-            ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -415,31 +319,20 @@ class _SearchingDriverScreenState
     return Container(
       width: double.infinity,
 
-      padding: const EdgeInsets.all(
-        AppSpacing.xl,
-      ),
+      padding: const EdgeInsets.all(AppSpacing.md),
 
       decoration: BoxDecoration(
         color: AppColors.white,
 
-        borderRadius: BorderRadius.circular(
-          AppSpacing.radiusCard,
-        ),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
 
-        border: Border.all(
-          color: AppColors.border,
-        ),
+        border: Border.all(color: AppColors.border),
 
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(
-              AppColors.opacityShadow,
-            ),
+            color: AppColors.black.withOpacity(AppColors.opacityShadow),
             blurRadius: AppSpacing.shadowBlur,
-            offset: const Offset(
-              0,
-              4,
-            ),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -449,7 +342,6 @@ class _SearchingDriverScreenState
           // =============================================
           // PICKUP
           // =============================================
-
           _buildLocationRow(
             label: 'Pickup',
             address: _viewModel.pickupAddress,
@@ -457,43 +349,31 @@ class _SearchingDriverScreenState
           ),
 
           Padding(
-            padding: const EdgeInsets.only(
-              left: 10,
-            ),
+            padding: const EdgeInsets.only(left: 10),
             child: Align(
               alignment: Alignment.centerLeft,
-              child: Container(
-                width: 2,
-                height: 20,
-                color: AppColors.border,
-              ),
+              child: Container(width: 2, height: 20, color: AppColors.border),
             ),
           ),
 
           // =============================================
           // DROP
           // =============================================
-
           _buildLocationRow(
             label: 'Drop',
             address: _viewModel.dropAddress,
             isPickup: false,
           ),
 
-          const SizedBox(
-            height: AppSpacing.lg,
-          ),
+          const SizedBox(height: AppSpacing.xs),
 
           const Divider(),
 
-          const SizedBox(
-            height: AppSpacing.lg,
-          ),
+          const SizedBox(height: AppSpacing.xs),
 
           // =============================================
           // VEHICLE + FARE
           // =============================================
-
           Row(
             children: [
               Container(
@@ -504,9 +384,7 @@ class _SearchingDriverScreenState
 
                 decoration: BoxDecoration(
                   color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(
-                    AppSpacing.radiusMedium,
-                  ),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),
                 ),
 
                 child: const Icon(
@@ -516,9 +394,7 @@ class _SearchingDriverScreenState
                 ),
               ),
 
-              const SizedBox(
-                width: AppSpacing.lg,
-              ),
+              const SizedBox(width: AppSpacing.lg),
 
               Expanded(
                 child: Text(
@@ -535,9 +411,7 @@ class _SearchingDriverScreenState
                     style: AppTextStyles.reviewPrice,
                   ),
 
-                  const SizedBox(
-                    height: AppSpacing.xs,
-                  ),
+                  const SizedBox(height: AppSpacing.xs),
 
                   Text(
                     '₹${_viewModel.originalFare.toInt()}',
@@ -550,15 +424,12 @@ class _SearchingDriverScreenState
             ],
           ),
 
-          const SizedBox(
-            height: AppSpacing.xl,
-          ),
+          const SizedBox(height: AppSpacing.xl),
 
           // =============================================
           // TEST DRIVER ACCEPT
           // Remove this when backend is connected.
           // =============================================
-
           SizedBox(
             width: double.infinity,
             height: AppSpacing.buttonHeight,
@@ -568,8 +439,7 @@ class _SearchingDriverScreenState
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (_) =>
-                        const CaptainOnTheWayScreen(),
+                    builder: (_) => const CaptainOnTheWayScreen(),
                   ),
                 );
               },
@@ -581,36 +451,27 @@ class _SearchingDriverScreenState
             ),
           ),
 
-          const SizedBox(
-            height: AppSpacing.md,
-          ),
+          const SizedBox(height: AppSpacing.md),
 
           // =============================================
           // CANCEL
           // =============================================
-
           SizedBox(
             width: double.infinity,
             height: AppSpacing.buttonHeight,
 
             child: OutlinedButton(
               onPressed: () {
-                _viewModel.cancelRequest(
-                  context,
-                );
+                _viewModel.cancelRequest(context);
               },
 
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
 
-                side: const BorderSide(
-                  color: AppColors.border,
-                ),
+                side: const BorderSide(color: AppColors.border),
 
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                    AppSpacing.radiusButton,
-                  ),
+                  borderRadius: BorderRadius.circular(AppSpacing.radiusButton),
                 ),
               ),
 
@@ -648,9 +509,7 @@ class _SearchingDriverScreenState
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: AppColors.white,
-            border: Border.all(
-              color: AppColors.border,
-            ),
+            border: Border.all(color: AppColors.border),
           ),
 
           child: Container(
@@ -659,29 +518,20 @@ class _SearchingDriverScreenState
 
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isPickup
-                  ? AppColors.textSecondary
-                  : AppColors.primary,
+              color: isPickup ? AppColors.textSecondary : AppColors.primary,
             ),
           ),
         ),
 
-        const SizedBox(
-          width: AppSpacing.md,
-        ),
+        const SizedBox(width: AppSpacing.md),
 
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: AppTextStyles.labelMedium,
-              ),
+              Text(label, style: AppTextStyles.labelMedium),
 
-              const SizedBox(
-                height: AppSpacing.xs,
-              ),
+              const SizedBox(height: AppSpacing.xs),
 
               Text(
                 address,
@@ -705,10 +555,7 @@ class _CircleButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _CircleButton({
-    required this.icon,
-    required this.onTap,
-  });
+  const _CircleButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -736,162 +583,40 @@ class _CircleButton extends StatelessWidget {
   }
 }
 
-// =====================================================================
-// DUMMY SEARCH MAP
-// =====================================================================
+class _RadarPainter extends CustomPainter {
+  final double progress;
 
-class _SearchingMapBackground extends StatelessWidget {
-  const _SearchingMapBackground();
+  const _RadarPainter({required this.progress});
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: const Color(
-        0xFFF0F0ED,
-      ),
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
 
-      child: Stack(
-        children: [
-          // =============================================
-          // ROAD 1
-          // =============================================
+    const blue = Color(0xFF3B82F6);
+    const maxRadius = 170.0;
 
-          Positioned(
-            top: 140,
-            left: -70,
-            right: -70,
-            child: Transform.rotate(
-              angle: -0.12,
-              child: Container(
-                height: 14,
-                color: AppColors.white.withOpacity(
-                  0.55,
-                ),
-              ),
-            ),
-          ),
+    for (int i = 0; i < 3; i++) {
+      final waveProgress = (progress + i / 3) % 1.0;
 
-          // =============================================
-          // ROAD 2
-          // =============================================
+      final radius = 8 + (maxRadius * waveProgress);
+      final opacity = (1 - waveProgress) * 0.32;
 
-          Positioned(
-            top: 330,
-            left: -80,
-            right: -80,
-            child: Transform.rotate(
-              angle: 0.16,
-              child: Container(
-                height: 18,
-                color: AppColors.white.withOpacity(
-                  0.50,
-                ),
-              ),
-            ),
-          ),
+      final fillPaint = Paint()
+        ..color = blue.withValues(alpha: opacity * 0.45)
+        ..style = PaintingStyle.fill;
 
-          // =============================================
-          // ROAD 3
-          // =============================================
+      final borderPaint = Paint()
+        ..color = blue.withValues(alpha: opacity)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
 
-          Positioned(
-            top: -100,
-            bottom: -100,
-            left: 110,
-            child: Transform.rotate(
-              angle: 0.12,
-              child: Container(
-                width: 15,
-                color: AppColors.white.withOpacity(
-                  0.45,
-                ),
-              ),
-            ),
-          ),
+      canvas.drawCircle(center, radius, fillPaint);
+      canvas.drawCircle(center, radius, borderPaint);
+    }
+  }
 
-          // =============================================
-          // ROAD 4
-          // =============================================
-
-          Positioned(
-            top: -100,
-            bottom: -100,
-            right: 90,
-            child: Transform.rotate(
-              angle: -0.10,
-              child: Container(
-                width: 13,
-                color: AppColors.white.withOpacity(
-                  0.40,
-                ),
-              ),
-            ),
-          ),
-
-          // =============================================
-          // SEARCH RADIUS
-          // =============================================
-
-          Center(
-            child: Container(
-              width: 300,
-              height: 300,
-
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-
-                color: AppColors.primary.withOpacity(
-                  AppColors.opacityExtraLight,
-                ),
-
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(
-                    AppColors.opacityLight,
-                  ),
-                ),
-              ),
-            ),
-          ),
-
-          // =============================================
-          // VEHICLE MARKER
-          // =============================================
-
-          Center(
-            child: Container(
-              width: 54,
-              height: 54,
-
-              alignment: Alignment.center,
-
-              decoration: BoxDecoration(
-                color: AppColors.white,
-
-                shape: BoxShape.circle,
-
-                border: Border.all(
-                  color: AppColors.border,
-                ),
-
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.black.withOpacity(
-                      AppColors.opacityShadow,
-                    ),
-                    blurRadius: 10,
-                  ),
-                ],
-              ),
-
-              child: const Icon(
-                Icons.two_wheeler_rounded,
-                color: AppColors.textPrimary,
-                size: AppSpacing.iconMedium,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+  @override
+  bool shouldRepaint(covariant _RadarPainter oldDelegate) {
+    return oldDelegate.progress != progress;
   }
 }

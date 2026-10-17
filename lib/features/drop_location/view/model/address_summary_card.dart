@@ -19,7 +19,7 @@ class AddressSummaryCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
         boxShadow: [
           BoxShadow(
-            color: AppColors.black.withOpacity(AppColors.opacityShadow),
+            color: AppColors.black.withValues(alpha: AppColors.opacityShadow),
             blurRadius: AppSpacing.shadowBlur,
             offset: const Offset(0, -2),
           ),
@@ -32,7 +32,9 @@ class AddressSummaryCard extends StatelessWidget {
             height: AppSpacing.iconExtraLarge,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(AppColors.opacityLight),
+              color: AppColors.primary.withValues(
+                alpha: AppColors.opacityLight,
+              ),
               shape: BoxShape.circle,
             ),
             child: const Icon(

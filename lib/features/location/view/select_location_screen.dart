@@ -7,7 +7,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_text_styles.dart';
 
-
 class SelectLocationScreen extends StatefulWidget {
   const SelectLocationScreen({super.key});
 
@@ -22,6 +21,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
   void initState() {
     super.initState();
     _viewModel = SelectLocationViewModel();
+    _viewModel.loadCurrentPickupLocation();
   }
 
   @override
@@ -98,7 +98,8 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                             final address = _viewModel.filteredAddresses[index];
                             return SavedAddressTile(
                               address: address,
-                              onTap: () => _viewModel.selectSavedAddress(address),
+                              onTap: () =>
+                                  _viewModel.selectSavedAddress(address),
                             );
                           },
                         ),
@@ -155,7 +156,7 @@ class _PickupDropCard extends StatelessWidget {
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     // color: AppColors.success,
-                     color: Color.fromARGB(255, 222, 13, 13),
+                    color: Color.fromARGB(255, 222, 13, 13),
                   ),
                   child: const Icon(
                     Icons.arrow_upward_rounded,
@@ -177,11 +178,28 @@ class _PickupDropCard extends StatelessWidget {
                           style: AppTextStyles.heading3,
                         ),
                         const SizedBox(height: AppSpacing.xs),
-                        Text(
-                          viewModel.pickupAddress,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.bodyMedium,
+                        Row(
+                          children: [
+                            if (viewModel.isLoadingPickup) ...[
+                              const SizedBox(
+                                width: 14,
+                                height: 14,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                            ],
+                            Expanded(
+                              child: Text(
+                                viewModel.pickupAddress,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppTextStyles.bodyMedium,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -200,11 +218,7 @@ class _PickupDropCard extends StatelessWidget {
           // ===================================================
           Padding(
             padding: const EdgeInsets.only(left: 13, top: AppSpacing.xs),
-            child: Row(
-              children: const [
-                DashedVerticalLine(),
-              ],
-            ),
+            child: Row(children: const [DashedVerticalLine()]),
           ),
 
           // ===================================================
@@ -213,6 +227,7 @@ class _PickupDropCard extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // Drop location indicator
               Container(
                 width: 28,
                 height: 28,
@@ -227,61 +242,64 @@ class _PickupDropCard extends StatelessWidget {
                   color: AppColors.white,
                 ),
               ),
+
               const SizedBox(width: AppSpacing.md),
+
+              // Wider drop location field
               Expanded(
                 child: Container(
                   height: AppSpacing.inputHeight,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
-                  ),
+                  clipBehavior: Clip.antiAlias,
                   decoration: BoxDecoration(
                     color: AppColors.surface,
                     borderRadius: BorderRadius.circular(AppSpacing.radiusInput),
                     border: Border.all(color: AppColors.primary, width: 1.5),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: viewModel.dropController,
-                          style: AppTextStyles.bodyLarge,
-                          decoration: InputDecoration(
-                            //border: InputBorder.none,
-                            filled: false,
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                            isCollapsed: true,
-                            hintText: 'Where is your drop?',
-                            hintStyle: AppTextStyles.inputHint,
-                          ),
+                  child: Center(
+                    child: TextField(
+                      controller: viewModel.dropController,
+                      maxLines: 1,
+                      textAlignVertical: TextAlignVertical.center,
+                      scrollPhysics: const ClampingScrollPhysics(),
+                      style: AppTextStyles.bodyLarge,
+                      decoration: InputDecoration(
+                        hintText: 'Where is your drop?',
+                        hintStyle: AppTextStyles.inputHint,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.md,
                         ),
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        filled: false,
                       ),
-                      // Icon(
-                      //   Icons.mic_none_rounded,
-                      //   color: AppColors.primary,
-                      //   size: AppSpacing.iconMedium,
-                      // ),
-                    ],
+                    ),
                   ),
                 ),
               ),
+
+              // Small spacing, moves + icon to the right
               const SizedBox(width: AppSpacing.sm),
+
+              // Smaller add-stop button
               InkWell(
                 borderRadius: BorderRadius.circular(AppSpacing.radiusCircular),
                 onTap: () {
                   // TODO: allow adding an extra drop stop.
                 },
                 child: Container(
-                  width: AppSpacing.inputHeight,
-                  height: AppSpacing.inputHeight,
+                  width: 40,
+                  height: 40,
                   alignment: Alignment.center,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     color: AppColors.background,
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.add_rounded,
+                    size: 18,
                     color: AppColors.textPrimary,
                   ),
                 ),
@@ -319,7 +337,7 @@ class _QuickActionsRow extends StatelessWidget {
                     Icons.location_on_outlined,
                     size: AppSpacing.iconSmall,
                     // color: AppColors.primary,
-                     color: Color.fromARGB(255, 17, 189, 25),
+                    color: Color.fromARGB(255, 17, 189, 25),
                   ),
                   const SizedBox(width: AppSpacing.xs),
                   Text(
@@ -333,11 +351,7 @@ class _QuickActionsRow extends StatelessWidget {
             ),
           ),
         ),
-        Container(
-          width: 1,
-          height: AppSpacing.xl,
-          color: AppColors.border,
-        ),
+        Container(width: 1, height: AppSpacing.xl, color: AppColors.border),
         Expanded(
           child: InkWell(
             onTap: () => viewModel.onSavedAddressesPressed(context),
@@ -396,7 +410,9 @@ class _ContinueButton extends StatelessWidget {
         width: double.infinity,
         height: AppSpacing.buttonHeight,
         child: ElevatedButton(
-          onPressed: enabled ? () => viewModel.onContinuePressed(context) : null,
+          onPressed: enabled
+              ? () => viewModel.onContinuePressed(context)
+              : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.primary,
             disabledBackgroundColor: AppColors.border,
