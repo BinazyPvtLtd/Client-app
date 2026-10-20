@@ -74,8 +74,6 @@
 //   static const double opacityShadow = 0.08;
 // }
 
-
-
 import 'package:flutter/material.dart';
 
 class AppColors {
@@ -115,6 +113,7 @@ class AppColors {
   static const Color warning = Color(0xFF666666);
   static const Color error = Color(0xFF000000);
   static const Color info = Color(0xFF555555);
+  static const Color validationError = Color(0xFFEF6C6C);
 
   // =========================================================
   // BORDER

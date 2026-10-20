@@ -1,3 +1,5 @@
+import 'package:client_app/features/account/saved_addresses/data/models/address_api_model.dart';
+import 'package:client_app/features/account/saved_addresses/view/saved_addresses_screen.dart';
 import 'package:client_app/features/drop_location/view/drop_location_screen.dart';
 import 'package:client_app/features/location/view/models/saved_address_model.dart';
 import 'package:client_app/features/location/view/pickup_location_picker_screen.dart';
@@ -5,13 +7,17 @@ import 'package:client_app/features/location/view/pickup_location_picker_screen.
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 
+import 'package:client_app/features/account/saved_addresses/data/repositories/addresses_repository.dart';
+
 import 'package:geocoding/geocoding.dart' as geo;
 
 class SelectLocationViewModel extends ChangeNotifier {
-  SelectLocationViewModel() {
-    _filteredAddresses = List.of(_savedAddresses);
+  SelectLocationViewModel({AddressesRepository? addressesRepository})
+    : _addressesRepository = addressesRepository ?? AddressesRepository() {
     dropController.addListener(_onDropQueryChanged);
   }
+
+  final AddressesRepository _addressesRepository;
 
   // PICKUP
 
@@ -109,7 +115,9 @@ class SelectLocationViewModel extends ChangeNotifier {
       _pickupAddress = 'Tap to select pickup location';
     } finally {
       _isLoadingPickup = false;
-      notifyListeners();
+      if (!_isDisposed) {
+        notifyListeners();
+      }
     }
   }
 
@@ -137,26 +145,62 @@ class SelectLocationViewModel extends ChangeNotifier {
 
   final TextEditingController dropController = TextEditingController();
 
-  final List<SavedAddressModel> _savedAddresses = const [
-    SavedAddressModel(
-      id: 'addr_1',
-      title: 'Jinnato Wali Masjid',
-      subtitle: 'Sarfarazganj, Sarfarazganj, Lucknow, Uttar Pradesh',
-      tag: 'HASAN ZAFAR',
-    ),
-    SavedAddressModel(
-      id: 'addr_2',
-      title: 'Home',
-      subtitle: 'Sector B, Aliganj, Lucknow, Uttar Pradesh',
-    ),
-    SavedAddressModel(
-      id: 'addr_3',
-      title: 'Office',
-      subtitle: 'Hazratganj, Lucknow, Uttar Pradesh',
-    ),
-  ];
+  List<SavedAddressModel> _savedAddresses = [];
+  List<SavedAddressModel> _filteredAddresses = [];
 
-  late List<SavedAddressModel> _filteredAddresses;
+  bool _isLoadingAddresses = false;
+  bool get isLoadingAddresses => _isLoadingAddresses;
+
+  String? _addressesError;
+  String? get addressesError => _addressesError;
+
+  bool _isDisposed = false;
+
+  double? _dropLatitude;
+  double? _dropLongitude;
+
+  double? get dropLatitude => _dropLatitude;
+  double? get dropLongitude => _dropLongitude;
+
+  bool get hasDropLocation => _dropLatitude != null && _dropLongitude != null;
+
+  Future<void> loadSavedAddresses() async {
+    if (_isLoadingAddresses || _isDisposed) return;
+
+    _isLoadingAddresses = true;
+    _addressesError = null;
+    notifyListeners();
+
+    try {
+      final result = await _addressesRepository.getAddresses();
+
+      if (_isDisposed) return;
+
+      _savedAddresses = result.map(_mapAddress).toList();
+      _refreshFilteredAddresses();
+    } catch (error) {
+      if (_isDisposed) return;
+
+      _addressesError = 'Unable to load saved addresses.';
+      debugPrint('Saved addresses error: $error');
+    } finally {
+      _isLoadingAddresses = false;
+
+      if (!_isDisposed) {
+        notifyListeners();
+      }
+    }
+  }
+
+  SavedAddressModel _mapAddress(AddressApiModel address) {
+    return SavedAddressModel(
+      id: address.id,
+      title: address.title,
+      subtitle: address.fullAddress,
+    );
+  }
+
+  // late List<SavedAddressModel> _filteredAddresses;
 
   List<SavedAddressModel> get filteredAddresses => _filteredAddresses;
 
@@ -164,10 +208,18 @@ class SelectLocationViewModel extends ChangeNotifier {
 
   SavedAddressModel? get selectedDropAddress => _selectedDropAddress;
 
+  bool _isResolvingDrop = false;
+
+  bool get isResolvingDrop => _isResolvingDrop;
+
+  String? _dropSearchError;
+
+  String? get dropSearchError => _dropSearchError;
+
   bool get canContinue =>
       hasPickupLocation &&
-      (_selectedDropAddress != null || dropController.text.trim().isNotEmpty);
-
+      dropController.text.trim().isNotEmpty &&
+      !_isResolvingDrop;
   void _onDropQueryChanged() {
     final query = dropController.text.trim().toLowerCase();
 
@@ -178,40 +230,131 @@ class SelectLocationViewModel extends ChangeNotifier {
                 address.subtitle.toLowerCase().contains(query);
           }).toList();
 
-    if (_selectedDropAddress != null &&
-        _selectedDropAddress!.title != dropController.text) {
-      _selectedDropAddress = null;
-    }
+    // User manually edits the text, so previous selection is invalid.
+    _selectedDropAddress = null;
+    _dropLatitude = null;
+    _dropLongitude = null;
 
     notifyListeners();
   }
 
+  void _refreshFilteredAddresses() {
+    final query = dropController.text.trim().toLowerCase();
+
+    _filteredAddresses = query.isEmpty
+        ? List.of(_savedAddresses)
+        : _savedAddresses.where((address) {
+            return address.title.toLowerCase().contains(query) ||
+                address.subtitle.toLowerCase().contains(query);
+          }).toList();
+
+    notifyListeners();
+  }
+
+  Future<bool> resolveManualDropAddress() async {
+    final query = dropController.text.trim();
+
+    if (query.isEmpty) return false;
+
+    // Already confirmed from map, and text unchanged.
+    if (hasDropLocation) return true;
+
+    _isResolvingDrop = true;
+    _dropSearchError = null;
+    notifyListeners();
+
+    try {
+      final results = await geo.Geocoding().locationFromAddress(
+        '$query, Lucknow, Uttar Pradesh, India',
+      );
+
+      if (_isDisposed) return false;
+
+      if (results.isEmpty) {
+        _dropSearchError = 'No address found. Please try another location.';
+        return false;
+      }
+
+      _dropLatitude = results.first.latitude;
+      _dropLongitude = results.first.longitude;
+
+      return true;
+    } catch (_) {
+      if (_isDisposed) return false;
+
+      _dropSearchError =
+          'No address found. Enter a valid location or select on map.';
+      return false;
+    } finally {
+      _isResolvingDrop = false;
+
+      if (!_isDisposed) notifyListeners();
+    }
+  }
+
   void selectSavedAddress(SavedAddressModel address) {
-    _selectedDropAddress = address;
+    // Text update triggers the search listener.
     dropController.text = address.title;
+
+    // Save selection after the listener runs.
+    _selectedDropAddress = address;
+
+    // Saved address coordinates are not available yet.
+    _dropLatitude = null;
+    _dropLongitude = null;
+
     notifyListeners();
   }
 
   void clearDrop() {
     _selectedDropAddress = null;
+    _dropLatitude = null;
+    _dropLongitude = null;
+
     dropController.clear();
+    notifyListeners();
   }
 
-  void onSelectOnMapPressed(BuildContext context) {
-    // Existing drop map action is not connected yet.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Drop map selection is not configured yet.'),
+  Future<void> onSelectOnMapPressed(BuildContext context) async {
+    final result = await Navigator.of(context).push<PickupLocationResult>(
+      MaterialPageRoute(
+        builder: (_) => PickupLocationPickerScreen(
+          isDropLocation: true,
+          initialLatitude: _dropLatitude ?? _pickupLatitude,
+          initialLongitude: _dropLongitude ?? _pickupLongitude,
+        ),
       ),
     );
+
+    if (result == null || _isDisposed) return;
+
+    // First update text. Its listener may clear the old selection.
+    dropController.text = result.address;
+
+    // Then store the confirmed map coordinates.
+    _selectedDropAddress = null;
+    _dropLatitude = result.latitude;
+    _dropLongitude = result.longitude;
+
+    notifyListeners();
   }
 
-  void onSavedAddressesPressed(BuildContext context) {
-    debugPrint('Saved addresses tapped');
+  Future<void> onSavedAddressesPressed(BuildContext context) async {
+    await Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => const SavedAddressesScreen()));
+
+    if (_isDisposed) return;
+
+    await loadSavedAddresses();
   }
 
-  void onContinuePressed(BuildContext context) {
+  Future<void> onContinuePressed(BuildContext context) async {
     if (!canContinue) return;
+
+    final resolved = await resolveManualDropAddress();
+
+    if (!resolved || !context.mounted || _isDisposed) return;
 
     final dropTitle = _selectedDropAddress?.title ?? dropController.text.trim();
 
@@ -223,6 +366,11 @@ class SelectLocationViewModel extends ChangeNotifier {
         builder: (_) => DropLocationScreen(
           addressTitle: dropTitle,
           addressSubtitle: dropSubtitle,
+          pickupAddress: _pickupAddress,
+          pickupLatitude: _pickupLatitude,
+          pickupLongitude: _pickupLongitude,
+          dropLatitude: _dropLatitude,
+          dropLongitude: _dropLongitude,
         ),
       ),
     );
@@ -230,6 +378,7 @@ class SelectLocationViewModel extends ChangeNotifier {
 
   @override
   void dispose() {
+    _isDisposed = true;
     dropController.removeListener(_onDropQueryChanged);
     dropController.dispose();
     super.dispose();

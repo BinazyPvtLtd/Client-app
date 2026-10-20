@@ -1,3 +1,4 @@
+import 'package:client_app/core/config/app_environment.dart';
 import 'package:client_app/core/theme/app_colors.dart';
 import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
@@ -16,6 +17,11 @@ class SelectVehicleScreen extends StatelessWidget {
   final String receiverPhone;
   final String houseNumber;
 
+  final double? pickupLatitude;
+  final double? pickupLongitude;
+  final double? dropLatitude;
+  final double? dropLongitude;
+
   const SelectVehicleScreen({
     super.key,
     required this.pickupAddress,
@@ -24,6 +30,10 @@ class SelectVehicleScreen extends StatelessWidget {
     required this.receiverName,
     required this.receiverPhone,
     required this.houseNumber,
+    this.pickupLatitude,
+    this.pickupLongitude,
+    this.dropLatitude,
+    this.dropLongitude,
   });
 
   @override
@@ -34,16 +44,31 @@ class SelectVehicleScreen extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) =>
-                  GoodsDetailsScreen(selectedVehicle: selectedVehicle),
+              builder: (_) => GoodsDetailsScreen(
+                selectedVehicle: selectedVehicle,
+                pickupAddress: pickupAddress,
+                dropAddress: dropAddress,
+                dropAddressSubtitle: dropAddressSubtitle,
+                receiverName: receiverName,
+                receiverPhone: receiverPhone,
+                houseNumber: houseNumber,
+                pickupLatitude: pickupLatitude,
+                pickupLongitude: pickupLongitude,
+                dropLatitude: dropLatitude,
+                dropLongitude: dropLongitude,
+              ),
             ),
           );
         },
-      ),
+      )..loadVehicles(),
       child: _SelectVehicleView(
         pickupAddress: pickupAddress,
         dropAddress: dropAddress,
         dropAddressSubtitle: dropAddressSubtitle,
+        pickupLatitude: pickupLatitude,
+        pickupLongitude: pickupLongitude,
+        dropLatitude: dropLatitude,
+        dropLongitude: dropLongitude,
       ),
     );
   }
@@ -57,11 +82,19 @@ class _SelectVehicleView extends StatelessWidget {
   final String pickupAddress;
   final String dropAddress;
   final String dropAddressSubtitle;
+  final double? pickupLatitude;
+  final double? pickupLongitude;
+  final double? dropLatitude;
+  final double? dropLongitude;
 
   const _SelectVehicleView({
     required this.pickupAddress,
     required this.dropAddress,
     required this.dropAddressSubtitle,
+    this.pickupLatitude,
+    this.pickupLongitude,
+    this.dropLatitude,
+    this.dropLongitude,
   });
 
   @override
@@ -381,7 +414,7 @@ class _SelectVehicleView extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
 
           Text(
-            '8.4 km',
+            'Distance unavailable',
             style: AppTextStyles.labelMedium.copyWith(
               color: AppColors.textSecondary,
               fontWeight: AppTypography.semiBold,
@@ -402,7 +435,7 @@ class _SelectVehicleView extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
 
           Text(
-            '32 mins',
+            'ETA unavailable',
             style: AppTextStyles.labelMedium.copyWith(
               color: AppColors.textSecondary,
               fontWeight: AppTypography.semiBold,
@@ -470,10 +503,28 @@ class _SelectVehicleView extends StatelessWidget {
   Widget _buildVehicleList(BuildContext context) {
     final viewModel = context.watch<SelectVehicleViewModel>();
 
+    if (viewModel.isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(AppSpacing.xxl),
+          child: CircularProgressIndicator(color: AppColors.primary),
+        ),
+      );
+    }
+
+    if (viewModel.errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Text(
+          'Unable to load vehicles. Please try again.',
+          style: AppTextStyles.bodyMedium,
+        ),
+      );
+    }
+
     return Column(
       children: List.generate(viewModel.vehicles.length, (index) {
         final vehicle = viewModel.vehicles[index];
-
         final isSelected = viewModel.selectedVehicleIndex == index;
 
         return Padding(
@@ -746,11 +797,6 @@ class _SelectVehicleView extends StatelessWidget {
   // ===================================================================
 
   Widget _buildBottomButton(BuildContext context) {
-    final selectedVehicle = context
-        .select<SelectVehicleViewModel, VehicleModel>(
-          (viewModel) => viewModel.selectedVehicle,
-        );
-
     return Positioned(
       left: 0,
       right: 0,
@@ -788,9 +834,13 @@ class _SelectVehicleView extends StatelessWidget {
             height: AppSpacing.buttonHeight,
 
             child: ElevatedButton(
-              onPressed: () {
-                context.read<SelectVehicleViewModel>().proceedWithVehicle();
-              },
+              onPressed: AppEnvironment.isMockMode
+                  ? () {
+                      context
+                          .read<SelectVehicleViewModel>()
+                          .proceedWithVehicle();
+                    }
+                  : null,
 
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.black,
@@ -804,28 +854,34 @@ class _SelectVehicleView extends StatelessWidget {
                 ),
               ),
 
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              // child: Row(
+              //   mainAxisAlignment: MainAxisAlignment.center,
 
-                children: [
-                  Flexible(
-                    child: Text(
-                      'Proceed with ${selectedVehicle.name}',
+              //   children: [
+              //     Flexible(
+              //       child: Text(
+              //         'Proceed with ${selectedVehicle.name}',
 
-                      maxLines: 1,
+              //         maxLines: 1,
 
-                      overflow: TextOverflow.ellipsis,
+              //         overflow: TextOverflow.ellipsis,
 
-                      style: AppTextStyles.buttonText.copyWith(
-                        fontWeight: AppTypography.semiBold,
-                      ),
-                    ),
-                  ),
+              //         style: AppTextStyles.buttonText.copyWith(
+              //           fontWeight: AppTypography.semiBold,
+              //         ),
+              //       ),
+              //     ),
 
-                  const SizedBox(width: AppSpacing.md),
+              //     const SizedBox(width: AppSpacing.md),
 
-                  const Icon(Icons.arrow_forward_rounded, size: 24),
-                ],
+              //     const Icon(Icons.arrow_forward_rounded, size: 24),
+              //   ],
+              // ),
+              child: Text(
+                AppEnvironment.isMockMode
+                    ? 'Continue (Demo)'
+                    : 'Fare unavailable',
+                style: AppTextStyles.buttonText,
               ),
             ),
           ),

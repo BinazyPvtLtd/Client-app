@@ -1,66 +1,3 @@
-// import 'package:flutter/material.dart';
-// import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-// class PatgolitoMap extends StatefulWidget {
-//   const PatgolitoMap({super.key});
-
-//   @override
-//   State<PatgolitoMap> createState() => _PatgolitoMapState();
-// }
-
-// class _PatgolitoMapState extends State<PatgolitoMap> {
-//   GoogleMapController? _mapController;
-
-//   // Temporary map location: Lucknow
-//   // Current GPS location is NOT being accessed.
-//   static const CameraPosition _initialCameraPosition = CameraPosition(
-//     target: LatLng(26.8467, 80.9462),
-//     zoom: 15.5,
-//     tilt: 0,
-//     bearing: 0,
-//   );
-
-//   @override
-//   void dispose() {
-//     _mapController?.dispose();
-//     super.dispose();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return GoogleMap(
-//       initialCameraPosition: _initialCameraPosition,
-
-//       // Real, colourful Google road map
-//       mapType: MapType.normal,
-
-//       // Current location disabled for now
-//       myLocationEnabled: false,
-//       myLocationButtonEnabled: false,
-
-//       // Map interaction
-//       zoomGesturesEnabled: true,
-//       scrollGesturesEnabled: true,
-//       rotateGesturesEnabled: true,
-//       tiltGesturesEnabled: true,
-
-//       // Clean professional appearance
-//       zoomControlsEnabled: false,
-//       compassEnabled: true,
-//       mapToolbarEnabled: false,
-
-//       // Real map details
-//       buildingsEnabled: true,
-//       indoorViewEnabled: false,
-//       trafficEnabled: false,
-
-//       onMapCreated: (controller) {
-//         _mapController = controller;
-//       },
-//     );
-//   }
-// }
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -71,11 +8,13 @@ class PatgolitoMap extends StatefulWidget {
     this.longitude = 80.9462,
     this.zoom = 15.5,
     this.onCameraIdlePosition,
+    this.interactive = true,
   });
 
   final double latitude;
   final double longitude;
   final double zoom;
+  final bool interactive;
 
   // Optional: future location selection support.
   final ValueChanged<LatLng>? onCameraIdlePosition;
@@ -117,6 +56,7 @@ class _PatgolitoMapState extends State<PatgolitoMap> {
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
+      padding: const EdgeInsets.only(bottom: 300),
       initialCameraPosition: CameraPosition(
         target: _cameraTarget,
         zoom: widget.zoom,
@@ -127,10 +67,10 @@ class _PatgolitoMapState extends State<PatgolitoMap> {
       myLocationEnabled: false,
       myLocationButtonEnabled: false,
 
-      zoomGesturesEnabled: true,
-      scrollGesturesEnabled: true,
-      rotateGesturesEnabled: true,
-      tiltGesturesEnabled: true,
+      zoomGesturesEnabled: widget.interactive,
+      scrollGesturesEnabled: widget.interactive,
+      rotateGesturesEnabled: widget.interactive,
+      tiltGesturesEnabled: widget.interactive,
 
       zoomControlsEnabled: false,
       compassEnabled: true,

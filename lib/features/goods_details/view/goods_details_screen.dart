@@ -3,7 +3,6 @@ import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
 import 'package:client_app/core/theme/app_typography.dart';
 import 'package:client_app/features/goods_details/viewmodel/goods_details_viewmodel.dart';
-import 'package:client_app/features/searching_driver/view/searching_driver_screen.dart';
 import 'package:client_app/features/select_vehicle/view/model/vehicle_model.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -11,12 +10,49 @@ import 'package:provider/provider.dart';
 class GoodsDetailsScreen extends StatelessWidget {
   final VehicleModel selectedVehicle;
 
-  const GoodsDetailsScreen({super.key, required this.selectedVehicle});
+  final String pickupAddress;
+  final String dropAddress;
+  final String dropAddressSubtitle;
+  final String receiverName;
+  final String receiverPhone;
+  final String houseNumber;
+
+  final double? pickupLatitude;
+  final double? pickupLongitude;
+  final double? dropLatitude;
+  final double? dropLongitude;
+
+  const GoodsDetailsScreen({
+    super.key,
+    required this.selectedVehicle,
+    this.pickupAddress = '',
+    this.dropAddress = '',
+    this.dropAddressSubtitle = '',
+    this.receiverName = '',
+    this.receiverPhone = '',
+    this.houseNumber = '',
+    this.pickupLatitude,
+    this.pickupLongitude,
+    this.dropLatitude,
+    this.dropLongitude,
+  });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => GoodsDetailsViewModel(selectedVehicle: selectedVehicle),
+      create: (_) => GoodsDetailsViewModel(
+        selectedVehicle: selectedVehicle,
+        pickupAddress: pickupAddress,
+        dropAddress: dropAddress,
+        dropAddressSubtitle: dropAddressSubtitle,
+        receiverName: receiverName,
+        receiverPhone: receiverPhone,
+        houseNumber: houseNumber,
+        pickupLatitude: pickupLatitude,
+        pickupLongitude: pickupLongitude,
+        dropLatitude: dropLatitude,
+        dropLongitude: dropLongitude,
+      ),
       child: _GoodsDetailsView(selectedVehicle: selectedVehicle),
     );
   }
@@ -32,9 +68,12 @@ class _GoodsDetailsView extends StatelessWidget {
   const _GoodsDetailsView({required this.selectedVehicle});
 
   void _onSkipPressed(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const SearchingDriverScreen()),
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Skipping goods details is not available yet.'),
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 2),
+      ),
     );
   }
 
@@ -248,7 +287,7 @@ class _GoodsDetailsView extends StatelessWidget {
   // =========================================================
 
   Widget _buildDetailsCard(BuildContext context) {
-    final viewModel = context.read<GoodsDetailsViewModel>();
+    final viewModel = context.watch<GoodsDetailsViewModel>();
 
     return Container(
       width: double.infinity,
@@ -279,6 +318,20 @@ class _GoodsDetailsView extends StatelessWidget {
             keyboardType: TextInputType.number,
           ),
 
+          if (viewModel.weightError != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                viewModel.weightError!,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.validationError,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+
           const SizedBox(height: AppSpacing.md),
 
           // PACKAGES
@@ -288,6 +341,20 @@ class _GoodsDetailsView extends StatelessWidget {
             controller: viewModel.packageController,
             keyboardType: TextInputType.number,
           ),
+
+          if (viewModel.packagesError != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                viewModel.packagesError!,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.validationError,
+                  fontWeight: AppTypography.semiBold,
+                ),
+              ),
+            ),
+          ],
 
           const SizedBox(height: AppSpacing.md),
 
@@ -299,6 +366,20 @@ class _GoodsDetailsView extends StatelessWidget {
             keyboardType: TextInputType.number,
             prefixText: '₹',
           ),
+
+          if (viewModel.goodsValueError != null) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                viewModel.goodsValueError!,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.validationError,
+                  fontWeight: AppTypography.semiBold,
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -440,11 +521,12 @@ class _GoodsDetailsView extends StatelessWidget {
   // =========================================================
 
   Widget _buildBottomButton(BuildContext context) {
+    final viewModel = context.watch<GoodsDetailsViewModel>();
+
     return Positioned(
       left: 0,
       right: 0,
       bottom: 0,
-
       child: Container(
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.screenHorizontal,
@@ -452,39 +534,28 @@ class _GoodsDetailsView extends StatelessWidget {
           AppSpacing.screenHorizontal,
           AppSpacing.lg,
         ),
-
         decoration: BoxDecoration(
           color: AppColors.background,
-
           border: const Border(top: BorderSide(color: AppColors.border)),
-
           boxShadow: [
             BoxShadow(
-              color: AppColors.black.withOpacity(AppColors.opacityShadow),
-
+              color: AppColors.black.withValues(alpha: AppColors.opacityShadow),
               blurRadius: AppSpacing.shadowBlur,
-
               offset: const Offset(0, -4),
             ),
           ],
         ),
-
         child: SafeArea(
           top: false,
-
           child: SizedBox(
             width: double.infinity,
-
             height: AppSpacing.buttonHeight,
-
             child: ElevatedButton(
-              onPressed: () {
-                context.read<GoodsDetailsViewModel>().onContinuePressed(
-                  context,
-                  selectedVehicle,
-                );
-              },
-
+              onPressed: viewModel.canContinue
+                  ? () {
+                      viewModel.onContinuePressed(context, selectedVehicle);
+                    }
+                  : null,
               child: Text('Continue', style: AppTextStyles.buttonText),
             ),
           ),
@@ -493,7 +564,6 @@ class _GoodsDetailsView extends StatelessWidget {
     );
   }
 }
-
 // =====================================================================
 // CATEGORY CARD
 // =====================================================================
@@ -533,7 +603,9 @@ class _CategoryCard extends StatelessWidget {
 
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primary.withOpacity(AppColors.opacityExtraLight)
+                ? AppColors.primary.withValues(
+                    alpha: AppColors.opacityExtraLight,
+                  )
                 : AppColors.surface,
 
             borderRadius: BorderRadius.circular(AppSpacing.radiusMedium),

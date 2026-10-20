@@ -22,11 +22,13 @@ class PickupLocationResult {
 class PickupLocationPickerScreen extends StatefulWidget {
   final double? initialLatitude;
   final double? initialLongitude;
+  final bool isDropLocation;
 
   const PickupLocationPickerScreen({
     super.key,
     this.initialLatitude,
     this.initialLongitude,
+    this.isDropLocation = false,
   });
 
   @override
@@ -49,22 +51,15 @@ class _PickupLocationPickerScreenState
   String? _errorMessage;
 
   bool _loading = false;
-  bool _mapMode = false;
+  bool _mapMode = true;
   bool _hasResolvedLocation = false;
 
   @override
   void initState() {
     super.initState();
 
-    if (widget.initialLatitude != null && widget.initialLongitude != null) {
-      _selectedPosition = LatLng(
-        widget.initialLatitude!,
-        widget.initialLongitude!,
-      );
-      _resolvePosition(_selectedPosition);
-    } else {
-      _selectedPosition = _fallbackCenter;
-    }
+    // Default map location: Lucknow, Uttar Pradesh
+    _selectedPosition = _fallbackCenter;
   }
 
   @override
@@ -254,9 +249,11 @@ class _PickupLocationPickerScreenState
       appBar: AppBar(
         backgroundColor: AppColors.background,
         surfaceTintColor: AppColors.background,
-        title: const Text(
-          'Change pickup location',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+        title: Text(
+          widget.isDropLocation
+              ? 'Select drop location'
+              : 'Change pickup location',
+          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
         ),
       ),
       body: SafeArea(
@@ -292,7 +289,11 @@ class _PickupLocationPickerScreenState
                       color: AppColors.primary,
                     ),
                     title: const Text('Use my current location'),
-                    subtitle: const Text('Detect pickup using GPS'),
+                    subtitle: Text(
+                      widget.isDropLocation
+                          ? 'Detect drop using GPS'
+                          : 'Detect pickup using GPS',
+                    ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: _loading ? null : _useCurrentLocation,
                   ),
@@ -304,7 +305,11 @@ class _PickupLocationPickerScreenState
                       color: AppColors.primary,
                     ),
                     title: const Text('Choose on map'),
-                    subtitle: const Text('Move the map to set pickup point'),
+                    subtitle: Text(
+                      widget.isDropLocation
+                          ? 'Move the map to set drop point'
+                          : 'Move the map to set pickup point',
+                    ),
                     trailing: const Icon(Icons.chevron_right_rounded),
                     onTap: () {
                       setState(() => _mapMode = true);
@@ -420,7 +425,11 @@ class _PickupLocationPickerScreenState
                           ),
                         ),
                       ),
-                      child: const Text('Confirm pickup location'),
+                      child: Text(
+                        widget.isDropLocation
+                            ? 'Confirm drop location'
+                            : 'Confirm pickup location',
+                      ),
                     ),
                   ),
                 ],

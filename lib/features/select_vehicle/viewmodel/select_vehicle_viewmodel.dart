@@ -1,135 +1,18 @@
-// import 'package:client_app/features/select_vehicle/view/model/vehicle_model.dart';
-// import 'package:flutter/foundation.dart';
-
-// class SelectVehicleViewModel extends ChangeNotifier {
-//   // =========================================================
-//   // CALLBACK
-//   // =========================================================
-
-//   SelectVehicleViewModel({
-//     this.onProceed,
-//   });
-
-//   final VoidCallback? onProceed;
-
-//   // =======================================a==================
-//   // VEHICLES
-//   // =========================================================
-
-//   final List<VehicleModel> vehicles = const [
-//     VehicleModel(
-//       name: '2 Wheeler',
-//       price: '₹149',
-//       maxWeight: 'Max 20 kg',
-//       arriving: 'Arriving in 4 mins',
-//       image: 'assets/images/2_wheeler.png',
-//       offer: '₹15 OFF',
-//     ),
-
-//     VehicleModel(
-//       name: 'Scooter',
-//       price: '₹165',
-//       maxWeight: 'Max 20 kg',
-//       arriving: 'Arriving in 6 mins',
-//       image: 'assets/images/2_wheeler.png',
-//     ),
-
-//     VehicleModel(
-//       name: 'Mini 3W',
-//       price: '₹249',
-//       maxWeight: 'Max 90 kg',
-//       arriving: 'Arriving in 8 mins',
-//       image: 'assets/images/mini_3w.png',
-//     ),
-
-//     VehicleModel(
-//       name: 'E Loader',
-//       price: '₹399',
-//       maxWeight: 'Max 300 kg',
-//       arriving: 'Arriving in 12 mins',
-//       image: 'assets/images/e_loader.png',
-//     ),
-//   ];
-
-//   // =========================================================
-//   // SELECTED VEHICLE
-//   // =========================================================
-
-//   int _selectedVehicleIndex = 0;
-
-//   int get selectedVehicleIndex => _selectedVehicleIndex;
-
-//   VehicleModel get selectedVehicle =>
-//       vehicles[_selectedVehicleIndex];
-
-//   // =========================================================
-//   // SELECT VEHICLE
-//   // =========================================================
-
-//   void selectVehicle(int index) {
-//     if (index < 0 || index >= vehicles.length) {
-//       return;
-//     }
-
-//     if (_selectedVehicleIndex == index) {
-//       return;
-//     }
-
-//     _selectedVehicleIndex = index;
-
-//     notifyListeners();
-//   }
-
-//   // =========================================================
-//   // ADD STOP
-//   // =========================================================
-
-//   void addStop() {
-//     debugPrint('Add stop tapped');
-//   }
-
-//   // =========================================================
-//   // EDIT LOCATION
-//   // =========================================================
-
-//   void editLocation() {
-//     debugPrint('Edit location tapped');
-//   }
-
-//   // =========================================================
-//   // PROCEED
-//   // =========================================================
-
-//   void proceedWithVehicle() {
-//     debugPrint(
-//       'Proceeding with: ${selectedVehicle.name}',
-//     );
-
-//     // Tell the View that the user wants to proceed.
-//     onProceed?.call();
-//   }
-// }
-
-
-import 'package:client_app/features/select_vehicle/view/model/vehicle_model.dart';
 import 'package:flutter/foundation.dart';
 
-class SelectVehicleViewModel extends ChangeNotifier {
-  // =========================================================
-  // CALLBACK
-  // =========================================================
+import 'package:client_app/features/select_vehicle/view/model/vehicle_model.dart';
+import 'package:client_app/features/select_vehicle/mappers/vehicle_type_mapper.dart';
+import 'package:client_app/features/vehicle_types/repositories/vehicle_types_repository.dart';
 
-  SelectVehicleViewModel({
-    this.onProceed,
-  });
+class SelectVehicleViewModel extends ChangeNotifier {
+  SelectVehicleViewModel({this.onProceed, VehicleTypesRepository? repository})
+    : _repository = repository ?? VehicleTypesRepository();
 
   final void Function(VehicleModel selectedVehicle)? onProceed;
+  final VehicleTypesRepository _repository;
 
-  // =========================================================
-  // VEHICLES
-  // =========================================================
-
-  final List<VehicleModel> vehicles = const [
+  // Existing UI data remains available until loading succeeds.
+  List<VehicleModel> _vehicles = const [
     VehicleModel(
       name: '2 Wheeler',
       price: '₹149',
@@ -138,7 +21,6 @@ class SelectVehicleViewModel extends ChangeNotifier {
       image: 'assets/images/2_wheeler.png',
       offer: '₹15 OFF',
     ),
-
     VehicleModel(
       name: 'Scooter',
       price: '₹165',
@@ -146,7 +28,6 @@ class SelectVehicleViewModel extends ChangeNotifier {
       arriving: 'Arriving in 6 mins',
       image: 'assets/images/2_wheeler.png',
     ),
-
     VehicleModel(
       name: 'Mini 3W',
       price: '₹249',
@@ -154,7 +35,6 @@ class SelectVehicleViewModel extends ChangeNotifier {
       arriving: 'Arriving in 8 mins',
       image: 'assets/images/mini_3w.png',
     ),
-
     VehicleModel(
       name: 'E Loader',
       price: '₹399',
@@ -164,60 +44,68 @@ class SelectVehicleViewModel extends ChangeNotifier {
     ),
   ];
 
-  // =========================================================
-  // SELECTED VEHICLE
-  // =========================================================
+  List<VehicleModel> get vehicles => List.unmodifiable(_vehicles);
 
   int _selectedVehicleIndex = 0;
-
   int get selectedVehicleIndex => _selectedVehicleIndex;
 
-  VehicleModel get selectedVehicle =>
-      vehicles[_selectedVehicleIndex];
+  VehicleModel get selectedVehicle => _vehicles[_selectedVehicleIndex];
 
-  // =========================================================
-  // SELECT VEHICLE
-  // =========================================================
+  bool _isLoading = false;
+  bool get isLoading => _isLoading;
 
-  void selectVehicle(int index) {
-    if (index < 0 || index >= vehicles.length) {
-      return;
-    }
+  String? _errorMessage;
+  String? get errorMessage => _errorMessage;
 
-    if (_selectedVehicleIndex == index) {
-      return;
-    }
+  Future<void> loadVehicles() async {
+    if (_isLoading) return;
 
-    _selectedVehicleIndex = index;
-
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
+
+    try {
+      final vehicleTypes = await _repository.getVehicleTypes();
+
+      final mappedVehicles = VehicleTypeMapper.toUiModels(vehicleTypes);
+
+      if (mappedVehicles.isEmpty) {
+        throw StateError('No vehicles available');
+      }
+
+      _vehicles = mappedVehicles;
+      _selectedVehicleIndex = 0;
+    } catch (error) {
+      _errorMessage = error.toString();
+      // Preserve existing vehicles if loading fails.
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
   }
 
-  // =========================================================
-  // ADD STOP
-  // =========================================================
+  void selectVehicle(int index) {
+    if (index < 0 || index >= _vehicles.length) return;
+    if (_selectedVehicleIndex == index) return;
+
+    _selectedVehicleIndex = index;
+    notifyListeners();
+  }
 
   void addStop() {
     debugPrint('Add stop tapped');
   }
 
-  // =========================================================
-  // EDIT LOCATION
-  // =========================================================
-
   void editLocation() {
     debugPrint('Edit location tapped');
   }
 
-  // =========================================================
-  // PROCEED
-  // =========================================================
-
   void proceedWithVehicle() {
-    debugPrint(
-      'Proceeding with: ${selectedVehicle.name}',
-    );
+    if (_isLoading || _errorMessage != null) return;
 
-    onProceed?.call(selectedVehicle);
+    final vehicle = selectedVehicle;
+
+    debugPrint('Proceeding with: ${vehicle.name}');
+    onProceed?.call(vehicle);
   }
 }

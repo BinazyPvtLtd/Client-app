@@ -13,10 +13,21 @@ class DropLocationScreen extends StatefulWidget {
     super.key,
     required this.addressTitle,
     required this.addressSubtitle,
+    this.pickupAddress,
+    this.pickupLatitude,
+    this.pickupLongitude,
+    this.dropLatitude,
+    this.dropLongitude,
   });
 
   final String addressTitle;
   final String addressSubtitle;
+
+  final String? pickupAddress;
+  final double? pickupLatitude;
+  final double? pickupLongitude;
+  final double? dropLatitude;
+  final double? dropLongitude;
 
   @override
   State<DropLocationScreen> createState() => _DropLocationScreenState();
@@ -32,6 +43,11 @@ class _DropLocationScreenState extends State<DropLocationScreen> {
     _viewModel = DropLocationViewModel(
       addressTitle: widget.addressTitle,
       addressSubtitle: widget.addressSubtitle,
+      pickupAddress: widget.pickupAddress,
+      pickupLatitude: widget.pickupLatitude,
+      pickupLongitude: widget.pickupLongitude,
+      dropLatitude: widget.dropLatitude,
+      dropLongitude: widget.dropLongitude,
     );
   }
 
@@ -180,10 +196,17 @@ class _MapSection extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           // FULL WIDTH REAL GOOGLE MAP
-          const Positioned.fill(child: PatgolitoMap()),
-
+          Positioned.fill(
+            child: PatgolitoMap(
+              latitude: viewModel.dropLatitude ?? 26.8467,
+              longitude: viewModel.dropLongitude ?? 80.9462,
+              zoom: 13,
+              interactive: false,
+            ),
+          ),
           // CENTER DROP LOCATION PIN
-          Center(
+          Align(
+            alignment: const Alignment(0, -0.45),
             child: IgnorePointer(
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 36),

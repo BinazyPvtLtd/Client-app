@@ -3,7 +3,6 @@ import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
 import 'package:flutter/material.dart';
 
-
 import '../models/saved_address_model.dart';
 
 class SavedAddressTile extends StatelessWidget {
@@ -61,8 +60,9 @@ class SavedAddressTile extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: AppColors.background,
-                            borderRadius:
-                                BorderRadius.circular(AppSpacing.radiusSmall),
+                            borderRadius: BorderRadius.circular(
+                              AppSpacing.radiusSmall,
+                            ),
                           ),
                           child: Text(
                             address.tag!,
@@ -89,7 +89,9 @@ class SavedAddressTile extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.xs),
                 child: Icon(
-                  isSaved ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  isSaved
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
                   size: AppSpacing.iconMedium,
                   color: isSaved ? AppColors.primary : AppColors.textTertiary,
                 ),

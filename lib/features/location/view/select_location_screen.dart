@@ -22,6 +22,7 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
     super.initState();
     _viewModel = SelectLocationViewModel();
     _viewModel.loadCurrentPickupLocation();
+    _viewModel.loadSavedAddresses();
   }
 
   @override
@@ -104,6 +105,18 @@ class _SelectLocationScreenState extends State<SelectLocationScreen> {
                           },
                         ),
                 ),
+                if (_viewModel.dropSearchError != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.screenHorizontal,
+                      vertical: AppSpacing.sm,
+                    ),
+                    child: Text(
+                      _viewModel.dropSearchError!,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+
                 _ContinueButton(viewModel: _viewModel),
               ],
             );
@@ -421,23 +434,34 @@ class _ContinueButton extends StatelessWidget {
             ),
             elevation: 0,
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Continue',
-                style: AppTextStyles.buttonText.copyWith(
-                  color: enabled ? AppColors.white : AppColors.textTertiary,
+          child: viewModel.isResolvingDrop
+              ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.white,
+                  ),
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Continue',
+                      style: AppTextStyles.buttonText.copyWith(
+                        color: enabled
+                            ? AppColors.white
+                            : AppColors.textTertiary,
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Icon(
+                      Icons.arrow_forward,
+                      size: AppSpacing.iconSmall,
+                      color: enabled ? AppColors.white : AppColors.textTertiary,
+                    ),
+                  ],
                 ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Icon(
-                Icons.arrow_forward,
-                size: AppSpacing.iconSmall,
-                color: enabled ? AppColors.white : AppColors.textTertiary,
-              ),
-            ],
-          ),
         ),
       ),
     );

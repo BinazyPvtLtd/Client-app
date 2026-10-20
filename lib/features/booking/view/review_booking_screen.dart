@@ -2,6 +2,7 @@ import 'package:client_app/core/theme/app_colors.dart';
 import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
 import 'package:client_app/core/theme/app_typography.dart';
+import 'package:client_app/features/booking/models/booking_details_model.dart';
 import 'package:client_app/features/booking/view/widgets/payment_method_sheet.dart';
 import 'package:client_app/features/booking/viewmodel/review_booking_viewmodel.dart';
 
@@ -10,7 +11,9 @@ import 'package:flutter/material.dart';
 import 'widgets/fare_breakup_bottom_sheet.dart';
 
 class ReviewBookingScreen extends StatefulWidget {
-  const ReviewBookingScreen({super.key});
+  final BookingDetailsModel bookingDetails;
+
+  const ReviewBookingScreen({super.key, required this.bookingDetails});
 
   @override
   State<ReviewBookingScreen> createState() => _ReviewBookingScreenState();
@@ -32,7 +35,7 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
   void initState() {
     super.initState();
 
-    _viewModel = ReviewBookingViewModel();
+    _viewModel = ReviewBookingViewModel(bookingDetails: widget.bookingDetails);
   }
 
   @override
@@ -95,6 +98,10 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
 
                     children: [
+                      _buildTripDetailsCard(),
+
+                      const SizedBox(height: AppSpacing.md),
+
                       _buildLoadingInfoCard(),
 
                       const SizedBox(height: AppSpacing.md),
@@ -124,6 +131,106 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildTripDetailsCard() {
+    final booking = widget.bookingDetails;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+        border: Border.all(color: AppColors.border),
+        boxShadow: _cardShadow,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Trip Details', style: AppTextStyles.reviewSectionTitle),
+
+          const SizedBox(height: AppSpacing.xl),
+
+          _buildTripDetailRow(
+            icon: Icons.trip_origin_rounded,
+            label: 'Pickup',
+            value: booking.pickupAddress,
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          _buildTripDetailRow(
+            icon: Icons.location_on_outlined,
+            label: 'Drop',
+            value: booking.dropAddress,
+            subtitle: booking.dropAddressSubtitle,
+          ),
+
+          const Divider(height: AppSpacing.xxxl),
+
+          _buildTripDetailRow(
+            icon: Icons.local_shipping_outlined,
+            label: 'Vehicle',
+            value: booking.vehicleName,
+          ),
+
+          const SizedBox(height: AppSpacing.lg),
+
+          _buildTripDetailRow(
+            icon: Icons.person_outline_rounded,
+            label: 'Receiver',
+            value: booking.receiverName,
+            subtitle: booking.receiverPhone,
+          ),
+
+          if (booking.houseNumber.trim().isNotEmpty) ...[
+            const SizedBox(height: AppSpacing.lg),
+            _buildTripDetailRow(
+              icon: Icons.home_outlined,
+              label: 'House / Building',
+              value: booking.houseNumber,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTripDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+    String? subtitle,
+  }) {
+    final displayValue = value.trim().isEmpty ? 'Not provided' : value.trim();
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: AppSpacing.iconMedium, color: AppColors.textPrimary),
+
+        const SizedBox(width: AppSpacing.md),
+
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: AppTextStyles.reviewLabel),
+
+              const SizedBox(height: AppSpacing.xs),
+
+              Text(displayValue, style: AppTextStyles.reviewValue),
+
+              if (subtitle != null && subtitle.trim().isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(subtitle.trim(), style: AppTextStyles.reviewSecondary),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 
@@ -158,7 +265,7 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
           Expanded(
             child: Text(
-              'Free 20 mins of loading-unloading time included.',
+              'Loading and unloading terms will be confirmed before booking.',
               style: AppTextStyles.reviewBody,
             ),
           ),
@@ -472,7 +579,7 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
           const SizedBox(height: AppSpacing.md),
 
-          _buildBullet('Maximum weight limit for 2 Wheeler is strictly 20kg.'),
+          _buildBullet('Check the selected vehicle capacity before booking.'),
         ],
       ),
     );
@@ -538,6 +645,7 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
         child: Row(
           children: [
             Expanded(
+              flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
 
@@ -545,7 +653,7 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
 
                 children: [
                   InkWell(
-                    onTap: _showPaymentMethods,
+                    onTap: null,
 
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -560,32 +668,32 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
                         const SizedBox(width: AppSpacing.sm),
 
                         Text(
-                          _viewModel.paymentMethod,
+                          'Payment pending',
 
                           style: AppTextStyles.reviewSectionTitle,
                         ),
 
-                        const Icon(Icons.keyboard_arrow_down_rounded),
+                        // const Icon(Icons.keyboard_arrow_down_rounded),
                       ],
                     ),
                   ),
 
                   const SizedBox(height: AppSpacing.xs),
 
+                  Text('Fare unavailable', style: AppTextStyles.reviewPrice),
+
+                  // GestureDetector(
+                  //   onTap: _showFareBreakup,
+
+                  //   child: Text(
+                  //     'View Breakup',
+
+                  //     style: AppTextStyles.reviewAction,
+                  //   ),
+                  // ),
                   Text(
-                    '₹${_viewModel.totalAmount.toInt()}',
-
-                    style: AppTextStyles.reviewPrice,
-                  ),
-
-                  GestureDetector(
-                    onTap: _showFareBreakup,
-
-                    child: Text(
-                      'View Breakup',
-
-                      style: AppTextStyles.reviewAction,
-                    ),
+                    'Awaiting fare from server',
+                    style: AppTextStyles.reviewSecondary,
                   ),
                 ],
               ),
@@ -594,17 +702,16 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
             const SizedBox(width: AppSpacing.md),
 
             Expanded(
+              flex: 2,
               child: SizedBox(
                 height: AppSpacing.buttonHeight,
-
                 child: ElevatedButton(
-                  onPressed: () {
-                    _viewModel.bookVehicle(context);
-                  },
-
+                  onPressed: null,
                   child: Text(
-                    'Book ${_viewModel.vehicleName}',
-
+                    'Unavailable',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
                     style: AppTextStyles.reviewButton,
                   ),
                 ),
@@ -621,7 +728,11 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
   // =========================================================
 
   void _showFareBreakup() {
-    FareBreakupBottomSheet.show(context, fare: _viewModel.fareBreakup);
+    final fare = _viewModel.fareBreakup;
+
+    if (fare == null) return;
+
+    FareBreakupBottomSheet.show(context, fare: fare);
   }
 
   // =========================================================
@@ -703,7 +814,7 @@ class _ReviewBookingScreenState extends State<ReviewBookingScreen> {
       builder: (_) {
         return PaymentMethodSheet(
           selectedMethod: _viewModel.paymentMethod,
-          amount: _viewModel.totalAmount,
+          amount: _viewModel.totalAmount ?? 0,
           onSelected: (method) {
             _viewModel.changePaymentMethod(method);
 

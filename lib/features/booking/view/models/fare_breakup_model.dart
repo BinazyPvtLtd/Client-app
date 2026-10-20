@@ -16,11 +16,7 @@ class FareBreakupModel {
   });
 
   double get subtotal =>
-      tripFare +
-      distanceCharge +
-      loadingUnloadingCharge +
-      platformFee +
-      taxes;
+      tripFare + distanceCharge + loadingUnloadingCharge + platformFee + taxes;
 
   double get total => subtotal - discount;
 }

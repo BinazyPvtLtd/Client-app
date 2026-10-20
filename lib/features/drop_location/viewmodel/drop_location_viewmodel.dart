@@ -5,6 +5,11 @@ class DropLocationViewModel extends ChangeNotifier {
   DropLocationViewModel({
     required this.addressTitle,
     required this.addressSubtitle,
+    this.pickupAddress,
+    this.pickupLatitude,
+    this.pickupLongitude,
+    this.dropLatitude,
+    this.dropLongitude,
   }) {
     nameController.addListener(_onFormChanged);
     phoneController.addListener(_onFormChanged);
@@ -16,6 +21,18 @@ class DropLocationViewModel extends ChangeNotifier {
 
   String addressTitle;
   String addressSubtitle;
+
+  final String? pickupAddress;
+  final double? pickupLatitude;
+  final double? pickupLongitude;
+  final double? dropLatitude;
+  final double? dropLongitude;
+
+  bool get hasValidCoordinates =>
+      pickupLatitude != null &&
+      pickupLongitude != null &&
+      dropLatitude != null &&
+      dropLongitude != null;
 
   // =========================================================
   // RECEIVER FORM
@@ -64,8 +81,10 @@ class DropLocationViewModel extends ChangeNotifier {
   // =========================================================
 
   bool get canConfirm {
-    return nameController.text.trim().isNotEmpty &&
-        phoneController.text.trim().length == 10;
+    final name = nameController.text.trim();
+    final phone = phoneController.text.trim();
+
+    return name.isNotEmpty && RegExp(r'^[0-9]{10}$').hasMatch(phone);
   }
 
   // =========================================================
@@ -90,12 +109,16 @@ class DropLocationViewModel extends ChangeNotifier {
       context,
       MaterialPageRoute(
         builder: (_) => SelectVehicleScreen(
-          pickupAddress: '123 Logistics Hub, Industrial Area',
+          pickupAddress: pickupAddress ?? '',
           dropAddress: addressTitle,
           dropAddressSubtitle: addressSubtitle,
           receiverName: nameController.text.trim(),
           receiverPhone: phoneController.text.trim(),
           houseNumber: houseController.text.trim(),
+          pickupLatitude: pickupLatitude,
+          pickupLongitude: pickupLongitude,
+          dropLatitude: dropLatitude,
+          dropLongitude: dropLongitude,
         ),
       ),
     );

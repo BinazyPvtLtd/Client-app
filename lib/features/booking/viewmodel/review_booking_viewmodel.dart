@@ -1,9 +1,12 @@
+import 'package:client_app/features/booking/models/booking_details_model.dart';
 import 'package:client_app/features/booking/view/models/fare_breakup_model.dart';
-import 'package:client_app/features/searching_driver/view/searching_driver_screen.dart';
 import 'package:flutter/material.dart';
 
-
 class ReviewBookingViewModel extends ChangeNotifier {
+  final BookingDetailsModel bookingDetails;
+
+  ReviewBookingViewModel({required this.bookingDetails});
+
   // =========================================================
   // PAYMENT
   // =========================================================
@@ -13,23 +16,22 @@ class ReviewBookingViewModel extends ChangeNotifier {
   String get paymentMethod => _paymentMethod;
 
   void changePaymentMethod(String method) {
-  if (_paymentMethod == method) return;
+    if (_paymentMethod == method) return;
 
-  _paymentMethod = method;
-  notifyListeners();
-}
+    _paymentMethod = method;
+    notifyListeners();
+  }
   // =========================================================
   // COUPON
   // =========================================================
 
-  bool _couponApplied = true;
+  bool _couponApplied = false;
 
   bool get couponApplied => _couponApplied;
 
   String get couponCode => '2W15OFF';
 
-  double get couponDiscount =>
-      _couponApplied ? 15 : 0;
+  double get couponDiscount => _couponApplied ? 15 : 0;
 
   void removeCoupon() {
     _couponApplied = false;
@@ -40,37 +42,58 @@ class ReviewBookingViewModel extends ChangeNotifier {
   // GOODS DETAILS
   // =========================================================
 
-  String get goodsCategory => 'Household';
+  String get goodsCategory => bookingDetails.category;
 
-  String get goodsWeight => '20 kg';
+  String get goodsWeight => '${bookingDetails.weightKg} kg';
 
-  String get goodsPackages => '3';
+  String get goodsPackages => bookingDetails.packages.toString();
 
-  String get goodsValue => '₹2,500';
+  String get goodsValue => '₹${bookingDetails.goodsValue.toStringAsFixed(0)}';
 
   // =========================================================
   // VEHICLE
   // =========================================================
 
-  String get vehicleName => '2 Wheeler';
-
+  String get vehicleName => bookingDetails.vehicleName;
   // =========================================================
   // FARE
   // =========================================================
 
-  FareBreakupModel get fareBreakup {
-    return FareBreakupModel(
-      tripFare: 120,
-      distanceCharge: 45,
-      loadingUnloadingCharge: 0,
-      platformFee: 5,
-      taxes: 15,
-      discount: couponDiscount,
-    );
-  }
+  // FareBreakupModel get fareBreakup {
+  //   return FareBreakupModel(
+  //     tripFare: 120,
+  //     distanceCharge: 45,
+  //     loadingUnloadingCharge: 0,
+  //     platformFee: 5,
+  //     taxes: 15,
+  //     discount: couponDiscount,
+  //   );
+  // }
 
-  double get totalAmount =>
-      fareBreakup.total;
+  // double get totalAmount => fareBreakup.total;
+
+  // =========================================================
+  // FARE — WAITING FOR BACKEND
+  // =========================================================
+
+  FareBreakupModel? _fareBreakup;
+
+  FareBreakupModel? get fareBreakup => _fareBreakup;
+
+  double? get totalAmount => _fareBreakup?.total;
+
+  bool get hasFare => _fareBreakup != null;
+
+  bool get canBook =>
+      hasFare &&
+      bookingDetails.pickupAddress.trim().isNotEmpty &&
+      bookingDetails.dropAddress.trim().isNotEmpty &&
+      bookingDetails.receiverName.trim().isNotEmpty &&
+      RegExp(r'^[0-9]{10}$').hasMatch(bookingDetails.receiverPhone.trim()) &&
+      bookingDetails.pickupLatitude != null &&
+      bookingDetails.pickupLongitude != null &&
+      bookingDetails.dropLatitude != null &&
+      bookingDetails.dropLongitude != null;
 
   // =========================================================
   // GSTIN
@@ -80,9 +103,7 @@ class ReviewBookingViewModel extends ChangeNotifier {
 
   String? get gstin => _gstin;
 
-  bool get hasGstin =>
-      _gstin != null &&
-      _gstin!.isNotEmpty;
+  bool get hasGstin => _gstin != null && _gstin!.isNotEmpty;
 
   void saveGstin(String value) {
     final trimmed = value.trim();
@@ -103,44 +124,21 @@ class ReviewBookingViewModel extends ChangeNotifier {
   // GOODS ACTION
   // =========================================================
 
-  void changeGoodsDetails(
-    BuildContext context,
-  ) {
-    debugPrint('Change Goods Details');
-
-    // Later:
-    //
-    // Navigator.push(
-    //   context,
-    //   MaterialPageRoute(
-    //     builder: (_) =>
-    //         const GoodsDetailsScreen(),
-    //   ),
-    // );
+  void changeGoodsDetails(BuildContext context) {
+    Navigator.pop(context);
   }
 
   // =========================================================
   // BOOK VEHICLE
   // =========================================================
 
-  void bookVehicle(
-  BuildContext context,
-) {
-  debugPrint('================================');
-  debugPrint('BOOKING CONFIRMED');
-  debugPrint('Vehicle: $vehicleName');
-  debugPrint('Payment: $paymentMethod');
-  debugPrint(
-    'Amount: ₹${totalAmount.toInt()}',
-  );
-  debugPrint('================================');
-
-  Navigator.push(
-    context,
-    MaterialPageRoute(
-      builder: (_) =>
-          const SearchingDriverScreen(),
-    ),
-  );
-}
+  void bookVehicle(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text(
+          'Booking is unavailable until the booking API is connected.',
+        ),
+      ),
+    );
+  }
 }
