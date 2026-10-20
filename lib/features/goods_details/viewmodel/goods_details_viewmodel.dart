@@ -195,13 +195,31 @@ class GoodsDetailsViewModel extends ChangeNotifier {
       return;
     }
 
-    final bookingDetails = BookingDetailsModel(
-      selectedVehicle: selectedVehicle,
-      category: selectedCategory,
-      weightKg: double.parse(weightController.text.trim()),
-      packages: int.parse(packageController.text.trim()),
-      goodsValue: double.parse(valueController.text.trim()),
-    );
+    
+final bookingDetails = BookingDetailsModel(
+  selectedVehicle: selectedVehicle,
+  category: selectedCategory,
+  weightKg: double.parse(weightController.text.trim()),
+  packages: int.parse(packageController.text.trim()),
+  goodsValue: double.parse(valueController.text.trim()),
+
+  // Pickup
+  pickupAddress: pickupAddress,
+  pickupLatitude: pickupLatitude,
+  pickupLongitude: pickupLongitude,
+
+  // Drop
+  dropAddress: dropAddress,
+  dropAddressSubtitle: dropAddressSubtitle,
+  dropLatitude: dropLatitude,
+  dropLongitude: dropLongitude,
+
+  // Receiver
+  receiverName: receiverName,
+  receiverPhone: receiverPhone,
+  houseNumber: houseNumber,
+);
+
 
     debugPrint('Vehicle: ${bookingDetails.vehicleName}');
     debugPrint('Category: ${bookingDetails.category}');
