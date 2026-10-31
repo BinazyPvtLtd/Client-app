@@ -1,3 +1,5 @@
+import 'package:client_app/features/auth/services/logout_service.dart';
+import 'package:client_app/features/auth/view/login_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/theme/app_colors.dart';
@@ -87,6 +89,88 @@ class _AccountScreenState
                   // =========================================
 
                   _buildMenuCard(),
+
+                  const SizedBox(
+                    height: AppSpacing.xxl,
+                  ),
+
+                  ListTile(
+  leading: const Icon(
+    Icons.logout,
+    color: Colors.red,
+  ),
+  title: const Text(
+    'Logout',
+    style: TextStyle(
+      color: Colors.red,
+      fontSize: 16,
+      fontWeight: FontWeight.w600,
+    ),
+  ),
+  trailing: const Icon(
+    Icons.arrow_forward_ios,
+    size: 16,
+    color: Colors.red,
+  ),
+  onTap: () async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text(
+            'Are you sure you want to logout?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, false);
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext, true);
+              },
+              child: const Text(
+                'Logout',
+                style: TextStyle(color: Colors.red),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout != true || !context.mounted) {
+      return;
+    }
+
+    try {
+      // Call logout API and clear saved token.
+      await LogoutService().logout();
+
+      if (!context.mounted) return;
+
+      // Navigate to Login Screen.
+      Navigator.of(context, rootNavigator: true)
+          .pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        ),
+        (route) => false,
+      );
+    } catch (error) {
+      if (!context.mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: $error'),
+        ),
+      );
+    }
+  },
+),
                 ],
               ),
             );

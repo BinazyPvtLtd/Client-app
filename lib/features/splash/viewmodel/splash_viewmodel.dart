@@ -2,45 +2,54 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-class SplashViewModel
-    extends ChangeNotifier {
+import '../../../core/storage/token_storage.dart';
+import '../../auth/services/laravel_auth_service.dart';
+
+class SplashViewModel extends ChangeNotifier {
+  final LaravelAuthService _authService = LaravelAuthService();
+
   Timer? _navigationTimer;
 
   bool _isInitialized = false;
 
-  bool get isInitialized =>
-      _isInitialized;
-
-  // =========================================================
-  // INITIALIZE
-  // =========================================================
+  bool get isInitialized => _isInitialized;
 
   void initialize({
-    required VoidCallback onComplete,
+    required void Function(bool isLoggedIn) onComplete,
   }) {
-    if (_isInitialized) {
-      return;
-    }
+    if (_isInitialized) return;
 
     _isInitialized = true;
 
-    // Splash visible for total 5 seconds.
     _navigationTimer = Timer(
-      const Duration(
-        seconds: 3,
-      ),
-      onComplete,
+      const Duration(seconds: 3),
+      () async {
+        bool isLoggedIn = false;
+
+        try {
+          final token = await TokenStorage.getToken();
+
+          if (token != null && token.isNotEmpty) {
+            final response = await _authService.getCurrentUser();
+
+            isLoggedIn = response is Map &&
+                response['success'] == true;
+          }
+        } catch (e) {
+          debugPrint('Session check failed: $e');
+
+          // Do not delete the token here.
+          // Temporary network errors must not log users out.
+        }
+
+        onComplete(isLoggedIn);
+      },
     );
   }
-
-  // =========================================================
-  // DISPOSE
-  // =========================================================
 
   @override
   void dispose() {
     _navigationTimer?.cancel();
-
     super.dispose();
   }
 }

@@ -10,19 +10,19 @@ import '../viewmodel/otp_viewmodel.dart';
 
 class OtpScreen extends StatelessWidget {
   final String phoneNumber;
-  final String verificationId;
 
   const OtpScreen({
     super.key,
     required this.phoneNumber,
-    required this.verificationId,
   });
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => OtpViewModel(verificationId: verificationId),
-      child: _OtpView(phoneNumber: phoneNumber),
+      create: (_) => OtpViewModel(),
+      child: _OtpView(
+        phoneNumber: phoneNumber,
+      ),
     );
   }
 }

@@ -7,8 +7,8 @@ class ApiConfig {
 
   static const String sendOtp = '/auth/send-otp';
   static const String verifyOtp = '/auth/verify-otp';
+  static const String logout = '/auth/logout';
   static const String me = '/auth/me';
-
   static const String vehicleTypes = '/vehicle-types';
   static const String profile = '/profile';
   static const String addresses = '/addresses';
