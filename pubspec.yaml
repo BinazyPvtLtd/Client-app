@@ -67,6 +67,7 @@ flutter:
     - assets/images/icon/
     - assets/images/truck_icon/
     - assets/images/
+    - assets/images/logo/splash/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
