@@ -43,6 +43,7 @@ dependencies:
   geocoding: ^5.0.0
   dio: ^5.11.1
   flutter_secure_storage: ^10.3.4
+  flutter_launcher_icons: ^0.14.4
 
 dev_dependencies:
   flutter_test:
@@ -54,6 +55,13 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^5.0.0
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo/patgolito_client_app.png"
+  remove_alpha_ios: true
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
