@@ -3,7 +3,8 @@ import 'package:client_app/features/home/widgets/patgolito_map.dart';
 import 'package:client_app/features/home/widgets/recent_drop_location.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import 'package:geolocator/geolocator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../widgets/branding_section.dart';
@@ -21,9 +22,228 @@ class HomeView extends StatefulWidget {
   State<HomeView> createState() => _HomeViewState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewState extends State<HomeView>
+    with WidgetsBindingObserver {
   final DraggableScrollableController _sheetController =
       DraggableScrollableController();
+
+      final GlobalKey<PatgolitoMapState> _mapKey =
+    GlobalKey<PatgolitoMapState>();
+
+LatLng? _currentLocation;
+
+bool _locationBusy = false;
+bool _dialogOpen = false;
+bool _resumeCheck = false;
+
+// ==========================================
+// INITIALIZE LOCATION
+// ==========================================
+
+@override
+void initState() {
+  super.initState();
+
+  WidgetsBinding.instance.addObserver(this);
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (mounted) {
+      _loadLocation();
+    }
+  });
+}
+
+// ==========================================
+// CHECK WHEN USER RETURNS FROM SETTINGS
+// ==========================================
+
+@override
+void didChangeAppLifecycleState(
+  AppLifecycleState state,
+) {
+  if (state == AppLifecycleState.resumed &&
+      _resumeCheck) {
+    _resumeCheck = false;
+
+    Future.delayed(
+      const Duration(milliseconds: 500),
+      () {
+        if (mounted) {
+          _loadLocation();
+        }
+      },
+    );
+  }
+}
+
+// ==========================================
+// SHOW ENABLE LOCATION POPUP
+// ==========================================
+
+Future<void> _showLocationDialog({
+  required bool serviceDisabled,
+}) async {
+  if (!mounted || _dialogOpen) return;
+
+  _dialogOpen = true;
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text(
+          'Enable your location',
+        ),
+
+        content: Text(
+          serviceDisabled
+              ? 'Please turn on your device location '
+                  'to show your current position on the map.'
+              : 'Please allow location access '
+                  'to show your current position.',
+        ),
+
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('Not now'),
+          ),
+
+          FilledButton(
+  onPressed: () async {
+    Navigator.pop(dialogContext);
+
+    _resumeCheck = true;
+
+    if (serviceDisabled) {
+      await Geolocator.openLocationSettings();
+    } else {
+      await Geolocator.openAppSettings();
+    }
+  },
+  child: const Text('Open settings'),
+),
+        ],
+      );
+    },
+  );
+
+  _dialogOpen = false;
+}
+
+// ==========================================
+// GET CURRENT GPS LOCATION
+// ==========================================
+
+Future<void> _loadLocation() async {
+  if (_locationBusy || !mounted) return;
+
+  _locationBusy = true;
+
+  try {
+    // STEP 1: Check device GPS
+
+    final enabled =
+        await Geolocator.isLocationServiceEnabled();
+
+    if (!enabled) {
+      await _showLocationDialog(
+        serviceDisabled: true,
+      );
+      return;
+    }
+
+    // STEP 2: Check permission
+
+    var permission =
+        await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission =
+          await Geolocator.requestPermission();
+    }
+
+    // STEP 3: Permission denied
+
+    if (permission == LocationPermission.denied ||
+        permission ==
+            LocationPermission.deniedForever) {
+      await _showLocationDialog(
+        serviceDisabled: false,
+      );
+      return;
+    }
+
+    // STEP 4: Fetch actual GPS coordinates
+
+    final position =
+        await Geolocator.getCurrentPosition(
+      locationSettings: const LocationSettings(
+        accuracy: LocationAccuracy.high,
+        timeLimit: Duration(seconds: 20),
+      ),
+    );
+
+    if (!mounted) return;
+
+    final target = LatLng(
+      position.latitude,
+      position.longitude,
+    );
+
+    // STEP 5: Save current location
+
+    setState(() {
+  _currentLocation = target;
+});
+
+// Wait until Home Screen rebuild completes.
+WidgetsBinding.instance.addPostFrameCallback((_) {
+  if (!mounted) return;
+
+  _mapKey.currentState?.moveTo(target);
+});
+    // STEP 7: Print location for testing
+
+    debugPrint(
+      '========== CLIENT CURRENT LOCATION ==========',
+    );
+
+    debugPrint(
+      'LATITUDE: ${position.latitude}',
+    );
+
+    debugPrint(
+      'LONGITUDE: ${position.longitude}',
+    );
+
+    debugPrint(
+      'ACCURACY: ${position.accuracy} meters',
+    );
+
+    debugPrint(
+      '=============================================',
+    );
+  } catch (e) {
+    debugPrint(
+      'HOME GPS ERROR: $e',
+    );
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Could not get current location. Please try again.',
+          ),
+        ),
+      );
+    }
+  } finally {
+    _locationBusy = false;
+  }
+}
 
   // static const CameraPosition _initialCameraPosition =
   //     CameraPosition(
@@ -35,10 +255,13 @@ class _HomeViewState extends State<HomeView> {
   // );
 
   @override
-  void dispose() {
-    _sheetController.dispose();
-    super.dispose();
-  }
+void dispose() {
+  WidgetsBinding.instance.removeObserver(this);
+
+  _sheetController.dispose();
+
+  super.dispose();
+}
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +303,18 @@ class _HomeViewState extends State<HomeView> {
                 //     trafficEnabled: false,
                 //   ),
                 // ),
-                const Positioned.fill(child: PatgolitoMap()),
+                Positioned.fill(
+  child: PatgolitoMap(
+    key: _mapKey,
+
+    latitude: _currentLocation?.latitude ?? 26.8467,
+    longitude: _currentLocation?.longitude ?? 80.9462,
+
+    showMyLocation: _currentLocation != null,
+
+    visibleMapFraction: 0.22,
+  ),
+),
 
                 // =============================================
                 // MAP BUTTON
@@ -93,9 +327,7 @@ class _HomeViewState extends State<HomeView> {
                     elevation: 3,
                     backgroundColor: AppColors.white,
                     foregroundColor: AppColors.black,
-                    onPressed: () {
-                      debugPrint('Move map to user location');
-                    },
+                    onPressed: _loadLocation,
                     child: const Icon(Icons.my_location_rounded),
                   ),
                 ),

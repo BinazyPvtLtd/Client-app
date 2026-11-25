@@ -31,7 +31,6 @@ class PatgolitoApp extends StatelessWidget {
         ChangeNotifierProvider<SplashViewModel>(
           create: (_) => SplashViewModel(),
         ),
-
         // ChangeNotifierProvider<OtpViewModel>(
         //   create: (_) => OtpViewModel(),
         // ),

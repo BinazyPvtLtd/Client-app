@@ -1,3 +1,5 @@
+
+
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
@@ -9,43 +11,91 @@ class PatgolitoMap extends StatefulWidget {
     this.zoom = 15.5,
     this.onCameraIdlePosition,
     this.interactive = true,
+    this.showMyLocation = false,
+    this.visibleMapFraction = 0.22,
   });
 
   final double latitude;
   final double longitude;
   final double zoom;
   final bool interactive;
+  final bool showMyLocation;
+  final double visibleMapFraction;
 
-  // Optional: future location selection support.
   final ValueChanged<LatLng>? onCameraIdlePosition;
 
   @override
-  State<PatgolitoMap> createState() => _PatgolitoMapState();
+  State<PatgolitoMap> createState() => PatgolitoMapState();
 }
 
-class _PatgolitoMapState extends State<PatgolitoMap> {
+class PatgolitoMapState extends State<PatgolitoMap> {
   GoogleMapController? _mapController;
   late LatLng _cameraTarget;
+
+  Future<void> moveTo(LatLng target) async {
+  final controller = _mapController;
+
+  if (controller == null || !mounted) return;
+
+  _cameraTarget = target;
+
+  final double mapHeight = context.size?.height ?? 600;
+
+  // Home Screen par 22% map visible hai.
+  final double visibleHeight =
+      mapHeight * widget.visibleMapFraction;
+
+  final double offset = (mapHeight - visibleHeight) / 2;
+
+  try {
+    // Center map on actual GPS coordinates.
+    await controller.moveCamera(
+      CameraUpdate.newCameraPosition(
+        CameraPosition(
+          target: target,
+          zoom: widget.zoom,
+        ),
+      ),
+    );
+
+    // Move GPS indicator into the visible map area.
+    await controller.moveCamera(
+      CameraUpdate.scrollBy(
+        0,
+        offset,
+      ),
+    );
+
+    debugPrint('MAP CAMERA POSITION UPDATED');
+    debugPrint('VISIBLE MAP HEIGHT: $visibleHeight');
+    debugPrint('CAMERA OFFSET: $offset');
+  } catch (e) {
+    debugPrint('MAP CAMERA ERROR: $e');
+  }
+}
 
   @override
   void initState() {
     super.initState();
-    _cameraTarget = LatLng(widget.latitude, widget.longitude);
+
+    _cameraTarget = LatLng(
+      widget.latitude,
+      widget.longitude,
+    );
   }
 
   @override
-  void didUpdateWidget(covariant PatgolitoMap oldWidget) {
-    super.didUpdateWidget(oldWidget);
+void didUpdateWidget(covariant PatgolitoMap oldWidget) {
+  super.didUpdateWidget(oldWidget);
 
-    if (oldWidget.latitude != widget.latitude ||
-        oldWidget.longitude != widget.longitude) {
-      final target = LatLng(widget.latitude, widget.longitude);
-
-      _cameraTarget = target;
-
-      _mapController?.animateCamera(CameraUpdate.newLatLng(target));
-    }
+  if (oldWidget.latitude != widget.latitude ||
+      oldWidget.longitude != widget.longitude) {
+    _cameraTarget = LatLng(
+      widget.latitude,
+      widget.longitude,
+    );
   }
+}
 
   @override
   void dispose() {
@@ -56,15 +106,22 @@ class _PatgolitoMapState extends State<PatgolitoMap> {
   @override
   Widget build(BuildContext context) {
     return GoogleMap(
-      padding: const EdgeInsets.only(bottom: 300),
+      // padding: const EdgeInsets.only(
+      //   bottom: 300,
+      // ),
+      padding: EdgeInsets.zero,
+
       initialCameraPosition: CameraPosition(
         target: _cameraTarget,
         zoom: widget.zoom,
       ),
+
       mapType: MapType.normal,
 
-      // GPS disabled
-      myLocationEnabled: false,
+      // Show current GPS position
+      myLocationEnabled: widget.showMyLocation,
+
+      // We use our custom location button
       myLocationButtonEnabled: false,
 
       zoomGesturesEnabled: widget.interactive,
@@ -85,12 +142,41 @@ class _PatgolitoMapState extends State<PatgolitoMap> {
       },
 
       onCameraIdle: () {
-        widget.onCameraIdlePosition?.call(_cameraTarget);
+        widget.onCameraIdlePosition?.call(
+          _cameraTarget,
+        );
       },
 
+      // onMapCreated: (controller) {
+      //   _mapController = controller;
+
+      //   controller.moveCamera(
+      //     CameraUpdate.newCameraPosition(
+      //       CameraPosition(
+      //         target: _cameraTarget,
+      //         zoom: widget.zoom,
+      //       ),
+      //     ),
+      //   );
+      // },
+
       onMapCreated: (controller) {
-        _mapController = controller;
-      },
+  _mapController = controller;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!mounted) return;
+
+    // Only center when GPS coordinates are available.
+    if (widget.showMyLocation) {
+      moveTo(
+        LatLng(
+          widget.latitude,
+          widget.longitude,
+        ),
+      );
+    }
+  });
+},
     );
   }
 }

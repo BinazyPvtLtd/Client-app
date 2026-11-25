@@ -14,4 +14,22 @@ class ApiConfig {
   static const String addresses = '/addresses';
   static const String quotes = '/quotes';
   static const String orders = '/orders';
+
+  // =====================================================
+// ADDRESS APIs
+// =====================================================
+
+// GET - List all saved addresses
+// POST - Create new address
+static const String getAddresses = '/addresses';
+static const String createAddress = '/addresses';
+
+// GET - Single address details
+static String getAddressById(dynamic id) => '/addresses/$id';
+
+// PATCH - Update existing address
+static String updateAddress(dynamic id) => '/addresses/$id';
+
+// DELETE - Delete address
+static String deleteAddress(dynamic id) => '/addresses/$id';
 }

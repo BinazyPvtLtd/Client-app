@@ -1,4 +1,3 @@
-import 'package:client_app/core/config/app_environment.dart';
 import 'package:client_app/core/theme/app_colors.dart';
 import 'package:client_app/core/theme/app_spacing.dart';
 import 'package:client_app/core/theme/app_text_styles.dart';
@@ -60,7 +59,14 @@ class SelectVehicleScreen extends StatelessWidget {
             ),
           );
         },
-      )..loadVehicles(),
+      )..initializeWithQuote(
+    pickupAddress: pickupAddress,
+    pickupLatitude: pickupLatitude,
+    pickupLongitude: pickupLongitude,
+    dropAddress: dropAddress,
+    dropLatitude: dropLatitude,
+    dropLongitude: dropLongitude,
+  ),
       child: _SelectVehicleView(
         pickupAddress: pickupAddress,
         dropAddress: dropAddress,
@@ -398,6 +404,7 @@ class _SelectVehicleView extends StatelessWidget {
   // ===================================================================
 
   Widget _buildTripInfo(BuildContext context) {
+    final viewModel = context.watch<SelectVehicleViewModel>();
     return SizedBox(
       height: 54,
       child: Row(
@@ -414,14 +421,16 @@ class _SelectVehicleView extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
 
           Text(
-            'Distance unavailable',
-            style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: AppTypography.semiBold,
-            ),
-          ),
+  viewModel.estimatedDistanceKm == null
+      ? 'Distance\nunavailable'
+      : 'Distance\n${viewModel.distanceText}',
+  style: AppTextStyles.labelMedium.copyWith(
+    color: AppColors.textSecondary,
+    fontWeight: AppTypography.semiBold,
+  ),
+),
 
-          const SizedBox(width: AppSpacing.lg),
+          const SizedBox(width: AppSpacing.xxs),
 
           // =====================================================
           // TIME
@@ -435,12 +444,14 @@ class _SelectVehicleView extends StatelessWidget {
           const SizedBox(width: AppSpacing.xs),
 
           Text(
-            'ETA unavailable',
-            style: AppTextStyles.labelMedium.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: AppTypography.semiBold,
-            ),
-          ),
+  viewModel.estimatedDurationMinutes == null
+      ? 'ETA\nunavailable'
+      : 'ETA\n${viewModel.etaText}',
+  style: AppTextStyles.labelMedium.copyWith(
+    color: AppColors.textSecondary,
+    fontWeight: AppTypography.semiBold,
+  ),
+),
 
           const Spacer(),
 
@@ -549,9 +560,30 @@ class _SelectVehicleView extends StatelessWidget {
       color: AppColors.transparent,
 
       child: InkWell(
-        onTap: () {
-          context.read<SelectVehicleViewModel>().selectVehicle(index);
-        },
+        onTap: () async {
+  final viewModel = context.read<SelectVehicleViewModel>();
+
+  if (viewModel.selectedVehicleIndex == index) return;
+
+  viewModel.selectVehicle(index);
+
+  if (pickupLatitude == null ||
+    pickupLongitude == null ||
+    dropLatitude == null ||
+    dropLongitude == null) {
+  debugPrint('QUOTE ERROR: Pickup or drop coordinates missing');
+  return;
+}
+
+  await viewModel.generateQuote(
+    pickupAddress: pickupAddress,
+    pickupLatitude: pickupLatitude!,
+    pickupLongitude: pickupLongitude!,
+    dropAddress: dropAddress,
+    dropLatitude: dropLatitude!,
+    dropLongitude: dropLongitude!,
+  );
+},
 
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
 
@@ -665,7 +697,11 @@ class _SelectVehicleView extends StatelessWidget {
               // =================================================
               // PRICE AREA
               // =================================================
-              _buildPriceSection(vehicle, isSelected),
+             _buildPriceSection(
+  context,
+  vehicle,
+  isSelected,
+),
             ],
           ),
         ),
@@ -713,7 +749,8 @@ class _SelectVehicleView extends StatelessWidget {
   // PRICE AREA
   // ===================================================================
 
-  Widget _buildPriceSection(VehicleModel vehicle, bool isSelected) {
+  Widget _buildPriceSection( BuildContext context,VehicleModel vehicle, bool isSelected) {
+     final viewModel = context.watch<SelectVehicleViewModel>();
     return SizedBox(
       width: 95,
       child: Column(
@@ -721,6 +758,8 @@ class _SelectVehicleView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.end,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+
+          
           // =====================================================
           // TOP ROW - OFFER + CHECK
           // =====================================================
@@ -778,15 +817,30 @@ class _SelectVehicleView extends StatelessWidget {
           // =====================================================
           // PRICE
           // =====================================================
-          Text(
-            vehicle.price,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.heading2.copyWith(
-              fontWeight: AppTypography.bold,
-              height: 1.1,
-            ),
-          ),
+  //         Text(
+  // isSelected
+  //     ? contextFare
+  //     : vehicle.price,
+  //           maxLines: 1,
+  //           overflow: TextOverflow.ellipsis,
+  //           style: AppTextStyles.heading2.copyWith(
+  //             fontWeight: AppTypography.bold,
+  //             height: 1.1,
+  //           ),
+  //         ),
+  Text(
+  isSelected
+      ? (viewModel.isQuoteLoading
+          ? 'Loading...'
+          : viewModel.fareText)
+      : vehicle.price,
+  maxLines: 1,
+  overflow: TextOverflow.ellipsis,
+  style: AppTextStyles.heading2.copyWith(
+    fontWeight: AppTypography.bold,
+    height: 1.1,
+  ),
+),
         ],
       ),
     );
@@ -797,6 +851,7 @@ class _SelectVehicleView extends StatelessWidget {
   // ===================================================================
 
   Widget _buildBottomButton(BuildContext context) {
+    final viewModel = context.watch<SelectVehicleViewModel>();
     return Positioned(
       left: 0,
       right: 0,
@@ -834,13 +889,11 @@ class _SelectVehicleView extends StatelessWidget {
             height: AppSpacing.buttonHeight,
 
             child: ElevatedButton(
-              onPressed: AppEnvironment.isMockMode
-                  ? () {
-                      context
-                          .read<SelectVehicleViewModel>()
-                          .proceedWithVehicle();
-                    }
-                  : null,
+              onPressed: viewModel.canProceed
+    ? () {
+        viewModel.proceedWithVehicle();
+      }
+    : null,
 
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.black,
@@ -878,11 +931,15 @@ class _SelectVehicleView extends StatelessWidget {
               //   ],
               // ),
               child: Text(
-                AppEnvironment.isMockMode
-                    ? 'Continue (Demo)'
-                    : 'Fare unavailable',
-                style: AppTextStyles.buttonText,
-              ),
+  viewModel.isQuoteLoading
+      ? 'Calculating fare...'
+      : viewModel.quoteError != null
+          ? 'Fare unavailable'
+          : viewModel.totalFare != null
+              ? 'Continue • ${viewModel.fareText}'
+              : 'Fare unavailable',
+  style: AppTextStyles.buttonText,
+),
             ),
           ),
         ),

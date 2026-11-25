@@ -127,9 +127,58 @@ class _SavedAddressesScreenState extends State<SavedAddressesScreen> {
                               _viewModel.editAddress(context, address);
                             },
 
-                            onDelete: () {
-                              _viewModel.deleteAddress(context, address);
-                            },
+onDelete: () async {
+  // Capture the screen's context, not the address card's context.
+  final screenContext = this.context;
+
+  final confirmed = await showDialog<bool>(
+    context: screenContext,
+    builder: (dialogContext) {
+      return AlertDialog(
+        title: const Text('Delete Address'),
+        content: const Text(
+          'Are you sure you want to delete this address?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, false);
+            },
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext, true);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      );
+    },
+  );
+
+  if (confirmed != true || !mounted) return;
+
+  debugPrint('========== DELETE ADDRESS ==========');
+  debugPrint('ADDRESS ID: ${address.id}');
+
+  final success = await _viewModel.removeAddressFromServer(
+    address.id.toString(),
+  );
+
+  if (!mounted) return;
+
+  ScaffoldMessenger.of(screenContext).showSnackBar(
+    SnackBar(
+      content: Text(
+        success
+            ? 'Address deleted successfully'
+            : (_viewModel.apiError ??
+                'Unable to delete address'),
+      ),
+    ),
+  );
+},
                           );
                         },
                       ),
@@ -295,7 +344,10 @@ class _AddressCard extends StatelessWidget {
           // =============================================
           // ICON
           // =============================================
-          _AddressIcon(icon: address.icon, highlight: address.id == 'home'),
+         _AddressIcon(
+  icon: address.icon,
+  highlight: address.title.toLowerCase() == 'home',
+),
 
           const SizedBox(width: AppSpacing.lg),
 
